@@ -1,4 +1,4 @@
-package nl.fontys.s3.controller;
+package Gamehub.controller;
 
 public class EventController {
 }

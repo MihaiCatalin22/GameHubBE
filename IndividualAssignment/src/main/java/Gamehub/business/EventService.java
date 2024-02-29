@@ -1,4 +1,4 @@
-package nl.fontys.s3.business;
+package Gamehub.business;
 
 public class EventService {
 }

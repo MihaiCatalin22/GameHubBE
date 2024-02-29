@@ -1,8 +1,14 @@
-package nl.fontys.s3.domain;
+package Gamehub.domain;
 
 import javax.management.relation.Role;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.*;
+@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     private Long id;

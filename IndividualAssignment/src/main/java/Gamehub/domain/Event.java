@@ -1,4 +1,4 @@
-package nl.fontys.s3.domain;
+package Gamehub.domain;
 
 import java.util.Date;
 import java.util.Set;
