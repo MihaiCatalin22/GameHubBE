@@ -10,10 +10,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class UserServiceTest {
@@ -27,13 +29,10 @@ class UserServiceTest {
 
     @Test
     void createUser() {
-        // Setup
         User newUser = new User(null, "testUser", "testuser@email.com", "password", new HashSet<>());
 
-        // Run the test
         User createdUser = userServiceTest.createUser(newUser);
 
-        // Verify the results
         assertThat(createdUser).isNotNull();
         assertThat(createdUser.getId()).isNotNull();
         assertThat(createdUser.getUsername()).isEqualTo("testUser");
@@ -42,51 +41,76 @@ class UserServiceTest {
 
     @Test
     void getUserById() {
-        // Setup
-        User existingUser = userServiceTest.createUser(new User(null, "existingUser", "existing@example.com", "password", new HashSet<>()));
+        User existingUser = userServiceTest.createUser(new User(null, "existingUser", "existing@email.com", "password", new HashSet<>()));
 
-        // Run the test
         Optional<User> foundUser = userServiceTest.getUserById(existingUser.getId());
 
-        // Verify the results
         assertTrue(foundUser.isPresent());
         assertThat(foundUser.get().getUsername()).isEqualTo("existingUser");
     }
 
     @Test
     void getAllUsers() {
-        // Run the test
         List<User> users = userServiceTest.getAllUsers();
 
-        // Verify the results
         assertThat(users).isNotEmpty();
     }
 
     @Test
     void updateUser() {
-        // Setup
-        User existingUser = userServiceTest.createUser(new User(null, "updateUser", "update@example.com", "password", new HashSet<>()));
-        User updatedUser = new User(existingUser.getId(), "updatedUsername", "updated@example.com", "newPassword", new HashSet<>());
+        User existingUser = userServiceTest.createUser(new User(null, "updateUser", "update@email.com", "password", new HashSet<>()));
+        User updatedUser = new User(existingUser.getId(), "updatedUsername", "updated@email.com", "newPassword", new HashSet<>());
 
-        // Run the test
         User result = userServiceTest.updateUser(existingUser.getId(), updatedUser);
 
-        // Verify the results
         assertThat(result.getUsername()).isEqualTo("updatedUsername");
-        assertThat(result.getEmail()).isEqualTo("updated@example.com");
+        assertThat(result.getEmail()).isEqualTo("updated@email.com");
 
     }
 
     @Test
     void deleteUser() {
-        // Setup
-        User userToDelete = userServiceTest.createUser(new User(null, "deleteUser", "delete@example.com", "password", new HashSet<>()));
+        User userToDelete = userServiceTest.createUser(new User(null, "deleteUser", "delete@email.com", "password", new HashSet<>()));
 
-        // Run the test
         userServiceTest.deleteUser(userToDelete.getId());
 
-        // Verify the results
         Optional<User> deletedUser = userServiceTest.getUserById(userToDelete.getId());
         assertThat(deletedUser).isEmpty();
     }
+
+    @Test
+    void getUserById_whenUserDoesNotExist() {
+        Long nonExistentId = 999L;
+        Optional<User> foundUser = userServiceTest.getUserById(nonExistentId);
+        assertTrue(foundUser.isEmpty(), "Expected no user to be found with a non-existent ID");
+    }
+
+    @Test
+    void updateUser_whenUserDoesNotExist() {
+        Long nonExistentId = 999L;
+        User updateUser = new User(nonExistentId, "nonExistentUser", "nonexistent@email.com", "password", new HashSet<>());
+
+        Exception exception = assertThrows(NoSuchElementException.class, () -> {
+            userServiceTest.updateUser(nonExistentId, updateUser);
+        });
+
+        String expectedMessage = "User not found with id: " + nonExistentId;
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    void deleteUser_whenUserDoesNotExist() {
+        Long nonExistentId = 999L;
+        assertDoesNotThrow(() -> userServiceTest.deleteUser(nonExistentId),
+                "Deleting a non-existent user should not throw an exception");
+    }
+
+    @Test
+    void createUser_withInvalidData() {
+        User invalidUser = new User(null, "", "", "password", new HashSet<>());
+    }
+
+
 }
