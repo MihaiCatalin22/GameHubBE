@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e0a19878-d70f-4b79-a086-dd32b60020ac" name="Changes" comment="-">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitlab-ci.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Documentation/Project Plan.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/GamehubApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/business/EventService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/business/ForumService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/business/GameService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/business/UserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/controller/EventController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/controller/ForumController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/controller/GameController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/controller/UserController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/domain/Event.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/domain/ForumPost.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/domain/Game.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Gamehub/domain/User.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/Gamehub/GamehubApplicationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/Gamehub/business/UserServiceTest.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="IndividualAssignment" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="IndividualAssignment" type="f1a62948:ProjectNode" />
+                <item name="Run Configurations" type="7b0102dc:RunConfigurationsNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="JUnit5 Test Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2cczR8ds0FviCidO6OHO3ud58yu" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build IndividualAssignment.executor": "Run",
+    "Gradle.GameServiceTest.noop.executor": "Run",
+    "Gradle.IndividualAssignment [test].executor": "Run",
+    "Gradle.UserServiceTest (1).executor": "Run",
+    "Gradle.UserServiceTest.createUser.executor": "Run",
+    "Gradle.UserServiceTest.executor": "Run",
+    "Gradle.UserServiceTest.getUserById.executor": "Run",
+    "Gradle.UserServiceTests.executor": "Run",
+    "Gradle.UserServiceTests.testCreateUser.executor": "Run",
+    "JUnit.UserServiceTest.createUser.executor": "Run",
+    "JUnit.UserServiceTest.createUser_withInvalidData.executor": "Run",
+    "JUnit.UserServiceTest.deleteUser_whenUserDoesNotExist.executor": "Run",
+    "JUnit.UserServiceTest.executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.GamehubApplication.executor": "Run",
+    "Spring Boot.Main.executor": "Run",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/uni/s3/individual/individual-assignment-semester-3",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "onboarding.tips.debug.path": "D:/uni/s3/individual/individual-assignment-semester-3/IndividualAssignment/src/main/java/org/example/Main.java",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="Gamehub.business" />
+      <recent name="Gamehub" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.UserServiceTest">
+    <configuration name="GameServiceTest.noop" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;Gamehub.business.GameServiceTest.noop&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="UserServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="IndividualAssignment.test" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Gamehub.business.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="Gamehub.business" />
+      <option name="MAIN_CLASS_NAME" value="Gamehub.business.UserServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="UserServiceTest.createUser" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="IndividualAssignment.test" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Gamehub.business.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="Gamehub.business" />
+      <option name="MAIN_CLASS_NAME" value="Gamehub.business.UserServiceTest" />
+      <option name="METHOD_NAME" value="createUser" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="UserServiceTest.createUser_withInvalidData" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="IndividualAssignment.test" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Gamehub.business.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="Gamehub.business" />
+      <option name="MAIN_CLASS_NAME" value="Gamehub.business.UserServiceTest" />
+      <option name="METHOD_NAME" value="createUser_withInvalidData" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="UserServiceTest.deleteUser_whenUserDoesNotExist" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="IndividualAssignment.test" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Gamehub.business.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="Gamehub.business" />
+      <option name="MAIN_CLASS_NAME" value="Gamehub.business.UserServiceTest" />
+      <option name="METHOD_NAME" value="deleteUser_whenUserDoesNotExist" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GamehubApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="IndividualAssignment.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="Gamehub.GamehubApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.UserServiceTest" />
+        <item itemvalue="JUnit.UserServiceTest.createUser_withInvalidData" />
+        <item itemvalue="JUnit.UserServiceTest.deleteUser_whenUserDoesNotExist" />
+        <item itemvalue="Gradle.GameServiceTest.noop" />
+        <item itemvalue="JUnit.UserServiceTest.createUser" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="jdk-17.0.10-corretto-17.0.10-4caba194b151-5cd809f4" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e0a19878-d70f-4b79-a086-dd32b60020ac" name="Changes" comment="" />
+      <created>1708425644804</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1708425644804</updated>
+      <workItem from="1708425646032" duration="38000" />
+      <workItem from="1708949644950" duration="15000" />
+      <workItem from="1708973940289" duration="2669000" />
+      <workItem from="1709211182335" duration="3739000" />
+      <workItem from="1709215831335" duration="5105000" />
+      <workItem from="1709221441468" duration="371000" />
+      <workItem from="1709541019851" duration="7424000" />
+      <workItem from="1709549018396" duration="91000" />
+      <workItem from="1709557024120" duration="22000" />
+      <workItem from="1709571695372" duration="129000" />
+      <workItem from="1709571948382" duration="2547000" />
+      <workItem from="1709574504827" duration="16000" />
+      <workItem from="1709574622222" duration="3083000" />
+      <workItem from="1709578918854" duration="410000" />
+      <workItem from="1709580426837" duration="1467000" />
+      <workItem from="1709627672942" duration="3154000" />
+      <workItem from="1709650909540" duration="1005000" />
+      <workItem from="1709652523697" duration="586000" />
+      <workItem from="1709653117996" duration="19000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/IndividualAssignment$UserServiceTest__1_.ic" NAME="UserServiceTest (1) Coverage Results" MODIFIED="1709575131410" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+</project>
