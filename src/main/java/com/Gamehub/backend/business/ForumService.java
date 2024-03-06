@@ -1,4 +1,4 @@
 package com.Gamehub.backend.business;
 
-public class ForumService {
+public interface ForumService {
 }
