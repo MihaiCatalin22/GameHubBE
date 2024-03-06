@@ -1,7 +1,7 @@
-package Gamehub.controller;
+package com.Gamehub.backend.controller;
 
-import Gamehub.domain.User;
-import Gamehub.business.UserService;
+import com.Gamehub.backend.domain.User;
+import com.Gamehub.backend.business.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

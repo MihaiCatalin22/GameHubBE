@@ -1,4 +1,4 @@
-package Gamehub.domain;
+package com.Gamehub.backend.domain;
 
 import java.util.Date;
 public class ForumPost {
@@ -8,3 +8,4 @@ public class ForumPost {
     private User author;
     private Date creationDate;
 }
+

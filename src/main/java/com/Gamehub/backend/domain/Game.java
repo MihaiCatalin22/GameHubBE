@@ -1,4 +1,4 @@
-package Gamehub.domain;
+package com.Gamehub.backend.domain;
 
 import java.util.Date;
 public class Game {

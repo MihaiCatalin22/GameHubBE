@@ -1,8 +1,6 @@
-package Gamehub.business;
-
-import Gamehub.domain.User;
+package com.Gamehub.backend.business;
+import com.Gamehub.backend.domain.User;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.PostConstruct;
 import java.util.*;
 
