@@ -28,7 +28,7 @@ public void setup() {
 
 @Test
 void createUser() {
-    User newUser = new User(null, "testUser", "testuser@email.com", "password", new HashSet<>());
+    User newUser = new User(null, "testUser", "testuser@email.com", "password");
 
     User createdUser = userServiceTest.createUser(newUser);
 
@@ -40,7 +40,7 @@ void createUser() {
 
 @Test
 void getUserById() {
-    User existingUser = userServiceTest.createUser(new User(null, "existingUser", "existing@email.com", "password", new HashSet<>()));
+    User existingUser = userServiceTest.createUser(new User(null, "existingUser", "existing@email.com", "password"));
 
     Optional<User> foundUser = userServiceTest.getUserById(existingUser.getId());
 
@@ -57,8 +57,8 @@ void getAllUsers() {
 
 @Test
 void updateUser() {
-    User existingUser = userServiceTest.createUser(new User(null, "updateUser", "update@email.com", "password", new HashSet<>()));
-    User updatedUser = new User(existingUser.getId(), "updatedUsername", "updated@email.com", "newPassword", new HashSet<>());
+    User existingUser = userServiceTest.createUser(new User(null, "updateUser", "update@email.com", "password"));
+    User updatedUser = new User(existingUser.getId(), "updatedUsername", "updated@email.com", "newPassword");
 
     User result = userServiceTest.updateUser(existingUser.getId(), updatedUser);
 
@@ -69,7 +69,7 @@ void updateUser() {
 
 @Test
 void deleteUser() {
-    User userToDelete = userServiceTest.createUser(new User(null, "deleteUser", "delete@email.com", "password", new HashSet<>()));
+    User userToDelete = userServiceTest.createUser(new User(null, "deleteUser", "delete@email.com", "password"));
 
     userServiceTest.deleteUser(userToDelete.getId());
 
@@ -87,7 +87,7 @@ void getUserById_whenUserDoesNotExist() {
 @Test
 void updateUser_whenUserDoesNotExist() {
     Long nonExistentId = 999L;
-    User updateUser = new User(nonExistentId, "nonExistentUser", "nonexistent@email.com", "password", new HashSet<>());
+    User updateUser = new User(nonExistentId, "nonExistentUser", "nonexistent@email.com", "password");
 
     Exception exception = assertThrows(NoSuchElementException.class, () -> {
         userServiceTest.updateUser(nonExistentId, updateUser);
@@ -108,7 +108,7 @@ void deleteUser_whenUserDoesNotExist() {
 
 @Test
 void createUser_withInvalidData() {
-    User invalidUser = new User(null, "", "", "password", new HashSet<>());
+    User invalidUser = new User(null, "", "", "password");
 }
 
 

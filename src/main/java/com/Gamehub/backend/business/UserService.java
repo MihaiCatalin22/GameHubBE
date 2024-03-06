@@ -1,7 +1,7 @@
 package com.Gamehub.backend.business;
 import com.Gamehub.backend.domain.User;
 import org.springframework.stereotype.Service;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 
@@ -13,10 +13,10 @@ public class UserService {
 
     @PostConstruct
     public void init() {
-        User user1 = new User(++userIdSequence, "testUser1", "test@email.com", "password", new HashSet<>());
+        User user1 = new User(++userIdSequence, "testUser1", "test@email.com", "password");
         users.put(user1.getId(), user1);
 
-        User user2 = new User(++userIdSequence, "testUser2", "cool@email.com", "password", new HashSet<>());
+        User user2 = new User(++userIdSequence, "testUser2", "cool@email.com", "password");
         users.put(user2.getId(), user2);
     }
     public User createUser(User user) {

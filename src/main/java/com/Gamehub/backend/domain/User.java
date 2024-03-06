@@ -1,6 +1,5 @@
 package com.Gamehub.backend.domain;
 
-import javax.management.relation.Role;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.*;
@@ -15,6 +14,5 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private Set<Role> roles = new HashSet<>();
 }
 
