@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream:src/main/java/Gamehub/business/UserService.java
 package Gamehub.business;
 
 import Gamehub.domain.User;
@@ -46,18 +45,4 @@ public class UserService {
     public void deleteUser(Long id) {
         users.remove(id);
     }
-=======
-package com.Gamehub.backend.business;
-
-import com.Gamehub.backend.domain.User;
-import java.util.List;
-import java.util.Optional;
-
-public interface UserService {
-    User createUser(User user);
-    Optional<User> getUserById(Long id);
-    List<User> getAllUsers();
-    User updateUser(Long id, User user);
-    void deleteUser(Long id);
->>>>>>> Stashed changes:src/main/java/com/Gamehub/backend/business/UserService.java
 }
