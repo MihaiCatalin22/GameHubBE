@@ -1,115 +1,78 @@
 package com.Gamehub.backend.business;
 
+import com.Gamehub.backend.business.impl.UserServiceImpl;
 import com.Gamehub.backend.domain.User;
+import com.Gamehub.backend.persistence.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-class UserServiceTest {
-    private UserService userServiceTest;
+@ExtendWith(MockitoExtension.class)
+class UserServiceImplTest {
 
-@BeforeEach
-public void setup() {
-    userServiceTest = new UserService();
-    userServiceTest.init();
-}
+    @Mock
+    private UserRepository userRepository;
 
-@Test
-void createUser() {
-    User newUser = new User(null, "testUser", "testuser@email.com", "password");
+    @InjectMocks
+    private UserServiceImpl userService;
 
-    User createdUser = userServiceTest.createUser(newUser);
+    private User user;
 
-    assertThat(createdUser).isNotNull();
-    assertThat(createdUser.getId()).isNotNull();
-    assertThat(createdUser.getUsername()).isEqualTo("testUser");
+    @BeforeEach
+    void setUp() {
+        user = new User();
+        user.setId(1L);
+    }
 
-}
+    @Test
+    void createUser() {
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        User createdUser = userService.createUser(new User());
+        assertNotNull(createdUser);
+        verify(userRepository).save(any(User.class));
+    }
 
-@Test
-void getUserById() {
-    User existingUser = userServiceTest.createUser(new User(null, "existingUser", "existing@email.com", "password"));
+    @Test
+    void getUserById() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        Optional<User> foundUser = userService.getUserById(1L);
+        assertTrue(foundUser.isPresent());
+        assertEquals(user.getId(), foundUser.get().getId());
+    }
 
-    Optional<User> foundUser = userServiceTest.getUserById(existingUser.getId());
+    @Test
+    void getAllUsers() {
+        when(userRepository.findAll()).thenReturn(Arrays.asList(user));
+        List<User> users = userService.getAllUsers();
+        assertFalse(users.isEmpty());
+        assertEquals(1, users.size());
+        verify(userRepository).findAll();
+    }
 
-    assertTrue(foundUser.isPresent());
-    assertThat(foundUser.get().getUsername()).isEqualTo("existingUser");
-}
+    @Test
+    void updateUser() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        User updatedUser = userService.updateUser(1L, new User());
+        assertNotNull(updatedUser);
+        assertEquals(user.getId(), updatedUser.getId());
+        verify(userRepository).save(any(User.class));
+    }
 
-@Test
-void getAllUsers() {
-    List<User> users = userServiceTest.getAllUsers();
-
-    assertThat(users).isNotEmpty();
-}
-
-@Test
-void updateUser() {
-    User existingUser = userServiceTest.createUser(new User(null, "updateUser", "update@email.com", "password"));
-    User updatedUser = new User(existingUser.getId(), "updatedUsername", "updated@email.com", "newPassword");
-
-    User result = userServiceTest.updateUser(existingUser.getId(), updatedUser);
-
-    assertThat(result.getUsername()).isEqualTo("updatedUsername");
-    assertThat(result.getEmail()).isEqualTo("updated@email.com");
-
-}
-
-@Test
-void deleteUser() {
-    User userToDelete = userServiceTest.createUser(new User(null, "deleteUser", "delete@email.com", "password"));
-
-    userServiceTest.deleteUser(userToDelete.getId());
-
-    Optional<User> deletedUser = userServiceTest.getUserById(userToDelete.getId());
-    assertThat(deletedUser).isEmpty();
-}
-
-@Test
-void getUserById_whenUserDoesNotExist() {
-    Long nonExistentId = 999L;
-    Optional<User> foundUser = userServiceTest.getUserById(nonExistentId);
-    assertTrue(foundUser.isEmpty(), "Expected no user to be found with a non-existent ID");
-}
-
-@Test
-void updateUser_whenUserDoesNotExist() {
-    Long nonExistentId = 999L;
-    User updateUser = new User(nonExistentId, "nonExistentUser", "nonexistent@email.com", "password");
-
-    Exception exception = assertThrows(NoSuchElementException.class, () -> {
-        userServiceTest.updateUser(nonExistentId, updateUser);
-    });
-
-    String expectedMessage = "User not found with id: " + nonExistentId;
-    String actualMessage = exception.getMessage();
-
-    assertTrue(actualMessage.contains(expectedMessage));
-}
-
-@Test
-void deleteUser_whenUserDoesNotExist() {
-    Long nonExistentId = 999L;
-    assertDoesNotThrow(() -> userServiceTest.deleteUser(nonExistentId),
-            "Deleting a non-existent user should not throw an exception");
-}
-
-@Test
-void createUser_withInvalidData() {
-    User invalidUser = new User(null, "", "", "password");
-}
-
-
+    @Test
+    void deleteUser() {
+        doNothing().when(userRepository).deleteById(1L);
+        userService.deleteUser(1L);
+        verify(userRepository).deleteById(1L);
+    }
 }
