@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.List;
 
 @Entity
+@Table(name = "posts")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,7 +25,8 @@ public class ForumPost {
     @Lob
     private String content;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
     private User author;
 
     @CreationTimestamp

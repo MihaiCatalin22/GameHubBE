@@ -1,5 +1,6 @@
 package com.Gamehub.backend.controller;
 
+import com.Gamehub.backend.DTO.ForumPostResponse;
 import com.Gamehub.backend.business.ForumService;
 import com.Gamehub.backend.domain.Comment;
 import com.Gamehub.backend.domain.ForumPost;
@@ -21,9 +22,9 @@ public class ForumController {
     }
 
     @PostMapping("/posts")
-    public ResponseEntity<ForumPost> createPost(@RequestBody ForumPost post) {
-        ForumPost createdPost = forumService.createPost(post);
-        return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
+    public ResponseEntity<ForumPostResponse> createPost(@RequestBody ForumPost post, @RequestParam Long userId) {
+        ForumPostResponse postResponse = forumService.createPost(post, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postResponse);
     }
 
     @GetMapping("/posts/{id}")

@@ -1,5 +1,7 @@
 package com.Gamehub.backend.business.impl;
 
+import com.Gamehub.backend.DTO.ForumPostResponse;
+import com.Gamehub.backend.DTO.AuthorInfo;
 import com.Gamehub.backend.business.ForumService;
 import com.Gamehub.backend.domain.ForumPost;
 import com.Gamehub.backend.domain.Comment;
@@ -24,10 +26,26 @@ public class ForumServiceImpl implements ForumService {
         this.userRepository = userRepository;
     }
     @Override
-    public ForumPost createPost(ForumPost post) {
-        return forumPostRepository.save(post);
+    public ForumPostResponse createPost(ForumPost post, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        post.setAuthor(user);
+        ForumPost createdPost = forumPostRepository.save(post);
+        return toForumPostResponse(createdPost);
     }
+    private ForumPostResponse toForumPostResponse(ForumPost post) {
+        AuthorInfo authorInfo = new AuthorInfo(post.getAuthor().getId(), post.getAuthor().getUsername());
+        ForumPostResponse response = new ForumPostResponse();
+        response.setId(post.getId());
+        response.setTitle(post.getTitle());
+        response.setContent(post.getContent());
+        response.setCreationDate(post.getCreationDate());
+        response.setLikesCount(post.getLikesCount());
+        response.setCategory(post.getCategory() != null ? post.getCategory().toString() : null);
+        response.setAuthor(new AuthorInfo(post.getAuthor().getId(), post.getAuthor().getUsername()));
 
+        return response;
+    }
     @Override
     public Optional<ForumPost> getPostById(Long id) {
         return forumPostRepository.findById(id);
