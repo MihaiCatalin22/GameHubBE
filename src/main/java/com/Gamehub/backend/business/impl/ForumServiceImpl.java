@@ -1,5 +1,6 @@
 package com.Gamehub.backend.business.impl;
 
+import com.Gamehub.backend.DTO.CommentDTO;
 import com.Gamehub.backend.DTO.ForumPostResponse;
 import com.Gamehub.backend.DTO.AuthorInfo;
 import com.Gamehub.backend.business.ForumService;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Service
 public class ForumServiceImpl implements ForumService {
     private final ForumPostRepository forumPostRepository;
@@ -33,22 +36,9 @@ public class ForumServiceImpl implements ForumService {
         ForumPost createdPost = forumPostRepository.save(post);
         return toForumPostResponse(createdPost);
     }
-    private ForumPostResponse toForumPostResponse(ForumPost post) {
-        AuthorInfo authorInfo = new AuthorInfo(post.getAuthor().getId(), post.getAuthor().getUsername());
-        ForumPostResponse response = new ForumPostResponse();
-        response.setId(post.getId());
-        response.setTitle(post.getTitle());
-        response.setContent(post.getContent());
-        response.setCreationDate(post.getCreationDate());
-        response.setLikesCount(post.getLikesCount());
-        response.setCategory(post.getCategory() != null ? post.getCategory().toString() : null);
-        response.setAuthor(new AuthorInfo(post.getAuthor().getId(), post.getAuthor().getUsername()));
-
-        return response;
-    }
     @Override
-    public Optional<ForumPost> getPostById(Long id) {
-        return forumPostRepository.findById(id);
+    public Optional<ForumPostResponse> getPostById(Long id) {
+        return forumPostRepository.findById(id).map(this::toForumPostResponse);
     }
 
     @Override
@@ -85,5 +75,32 @@ public class ForumServiceImpl implements ForumService {
         comment.setAuthor(user);
         comment.setForumPost(post);
         return commentRepository.save(comment);
+    }
+
+    private ForumPostResponse toForumPostResponse(ForumPost post) {
+        List<CommentDTO> commentDTOs = post.getComments().stream()
+                .map(this::convertToCommentDTO)
+                .collect(Collectors.toList());
+
+        AuthorInfo authorInfo = new AuthorInfo(post.getAuthor().getId(), post.getAuthor().getUsername());
+        return new ForumPostResponse(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                authorInfo,
+                post.getCreationDate(),
+                post.getLikesCount(),
+                post.getCategory() != null ? post.getCategory().toString() : null,
+                commentDTOs
+        );
+    }
+
+    private CommentDTO convertToCommentDTO(Comment comment) {
+        return new CommentDTO(
+                comment.getId(),
+                comment.getContent(),
+                new AuthorInfo(comment.getAuthor().getId(), comment.getAuthor().getUsername()),
+                comment.getCreationDate()
+        );
     }
 }

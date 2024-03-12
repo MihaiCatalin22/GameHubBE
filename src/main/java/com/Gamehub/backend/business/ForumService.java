@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface ForumService {
     ForumPostResponse createPost(ForumPost post, Long userId);
-    Optional<ForumPost> getPostById(Long id);
+    Optional<ForumPostResponse> getPostById(Long id);
     List<ForumPost> getAllPosts();
     ForumPost updatePost(Long id, ForumPost post);
     void deletePost(Long id);

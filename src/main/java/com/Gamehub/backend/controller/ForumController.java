@@ -28,11 +28,12 @@ public class ForumController {
     }
 
     @GetMapping("/posts/{id}")
-    public ResponseEntity<ForumPost> getPostById(@PathVariable Long id) {
+    public ResponseEntity<?> getPostById(@PathVariable Long id) {
         return forumService.getPostById(id)
-                .map(post -> new ResponseEntity<>(post, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .map(post -> ResponseEntity.ok().body(post))
+                .orElse(ResponseEntity.notFound().build());
     }
+
 
     @GetMapping("/posts")
     public ResponseEntity<List<ForumPost>> getAllPosts(){

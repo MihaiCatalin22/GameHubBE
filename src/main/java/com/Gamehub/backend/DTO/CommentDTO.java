@@ -1,24 +1,16 @@
 package com.Gamehub.backend.DTO;
-
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.Date;
-import java.util.List;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ForumPostResponse {
+public class CommentDTO {
     private Long id;
-    private String title;
     private String content;
     private AuthorInfo author;
     private Date creationDate;
-    private long likesCount;
-    private String category;
-    private List<CommentDTO> comments;
 }

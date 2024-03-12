@@ -1,5 +1,6 @@
 package com.Gamehub.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,5 +28,7 @@ public class Comment {
     private Date creationDate;
 
     @ManyToOne
+    @JoinColumn(name = "forum_post_id")
+    @JsonBackReference
     private ForumPost forumPost;
 }

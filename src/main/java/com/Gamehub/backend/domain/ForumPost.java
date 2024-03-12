@@ -1,5 +1,6 @@
 package com.Gamehub.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,7 +26,7 @@ public class ForumPost {
     @Lob
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id")
     private User author;
 
@@ -35,7 +36,8 @@ public class ForumPost {
     private long likesCount;
 
     @OneToMany(mappedBy = "forumPost", cascade = CascadeType.ALL)
-    private List<Comment> comments;
+    @JsonManagedReference
+    private Set<Comment> comments;
 
     @Enumerated(EnumType.STRING)
     private Category category;
