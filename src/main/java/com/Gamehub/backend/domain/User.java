@@ -1,15 +1,13 @@
-package Gamehub.domain;
+package com.Gamehub.backend.domain;
 
-<<<<<<< Updated upstream:src/main/java/Gamehub/domain/User.java
-import javax.management.relation.Role;
 import java.util.HashSet;
 import java.util.Set;
-=======
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
->>>>>>> Stashed changes:src/main/java/com/Gamehub/backend/domain/User.java
 import lombok.*;
 @Entity
 @Table(name = "users")
@@ -23,8 +21,6 @@ public class User {
     private String username;
     private String email;
     private String password;
-<<<<<<< Updated upstream:src/main/java/Gamehub/domain/User.java
-=======
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "Role", joinColumns = @JoinColumn(name = "user_id"))
@@ -46,7 +42,5 @@ public class User {
         this.roles = roles;
     }
 }
->>>>>>> Stashed changes:src/main/java/com/Gamehub/backend/domain/User.java
 
-    private Set<Role> roles = new HashSet<>();
-}
+
