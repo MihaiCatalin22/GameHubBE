@@ -30,8 +30,7 @@ public class ForumPost {
     @CreationTimestamp
     private Date creationDate;
 
-    @ManyToMany
-    private Set<User> likes;
+    private long likesCount;
 
     @OneToMany(mappedBy = "forumPost", cascade = CascadeType.ALL)
     private List<Comment> comments;
