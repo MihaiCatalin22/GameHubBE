@@ -18,6 +18,9 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Game createGame(Game game) {
+        if (game.getTitle() == null || game.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Game title cannot be empty");
+        }
         return gameRepository.save(game);
     }
 
