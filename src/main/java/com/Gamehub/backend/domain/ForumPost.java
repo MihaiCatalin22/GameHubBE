@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class ForumPost {
 
     @OneToMany(mappedBy = "forumPost", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private Set<Comment> comments;
+    private Set<Comment> comments = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private Category category;
