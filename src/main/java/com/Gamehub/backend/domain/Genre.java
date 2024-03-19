@@ -1,5 +1,6 @@
 package com.Gamehub.backend.domain;
 
+
 public enum Genre {
     ACTION,
     ADVENTURE,

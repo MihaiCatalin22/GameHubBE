@@ -40,7 +40,7 @@ public class GameServiceImpl implements GameService {
                 .map(game -> {
                     game.setTitle(updatedGame.getTitle());
                     game.setDescription(updatedGame.getDescription());
-                    game.setGenre(updatedGame.getGenre());
+                    game.setGenres(updatedGame.getGenres());
                     game.setReleaseDate(updatedGame.getReleaseDate());
                     game.setDeveloper(updatedGame.getDeveloper());
                     return gameRepository.save(game);

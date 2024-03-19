@@ -10,10 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +32,7 @@ class GameServiceImplTest {
         game.setId(1L);
         game.setTitle("Test Game");
         game.setDescription("Test Description");
-        game.setGenre(Genre.MMO);
+        game.setGenres(new HashSet<>(Collections.singletonList(Genre.MMO)));
         game.setReleaseDate(new Date());
         game.setDeveloper("Test Developer");
 
