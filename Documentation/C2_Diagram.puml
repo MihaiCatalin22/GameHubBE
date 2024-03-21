@@ -1,0 +1,16 @@
+@startuml GameHub-Container
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(player, "Player")
+Person(gameDeveloper, "Game Developer")
+Container(webApp, "Web Application", "React", "Allows users to interact with the GameHub platform.")
+ContainerDb(database, "Database", "", "Stores all the platform's data.")
+Container(backendService, "Backend Service", "Spring Boot", "Handles business logic and data processing.")
+Container(eventService, "Event Service", "WebSockets", "Manages real-time features for events.")
+
+Rel(player, webApp, "Uses")
+Rel(gameDeveloper, webApp, "Uses")
+Rel(webApp, backendService, "Sends API requests to")
+Rel(backendService, database, "Reads from and writes to")
+Rel_U(player, eventService, "Subscribes to and receives real-time updates from")
+@enduml
