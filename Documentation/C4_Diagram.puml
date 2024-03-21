@@ -1,0 +1,72 @@
+@startuml ForumPostLevel4
+
+class ForumPost {
+    -Long id
+    -String title
+    -String content
+    -User author
+    -Date creationDate
+    -long likesCount
+    -Set<Comment> comments
+    -Category category
+}
+
+class Comment {
+    -Long id
+    -String content
+    -User author
+    -Date creationDate
+    -ForumPost forumPost
+}
+
+enum Category {
+    GENERAL,
+    QUESTIONS,
+    ANNOUNCEMENTS
+}
+
+interface ForumService {
+    +ForumPostResponse createPost(ForumPost, Long)
+    +Optional<ForumPostResponse> getPostById(Long)
+    +List<ForumPost> getAllPosts()
+    +ForumPost updatePost(Long, ForumPost)
+    +void deletePost(Long)
+    +void likePost(Long, Long)
+    +Comment commentOnPost(Long, Comment, Long)
+}
+
+class ForumServiceImpl {
+    -ForumPostRepository forumPostRepository
+    -CommentRepository commentRepository
+    -UserRepository userRepository
+    +ForumPostResponse createPost(ForumPost, Long)
+    +Optional<ForumPostResponse> getPostById(Long)
+    +List<ForumPost> getAllPosts()
+    +ForumPost updatePost(Long, ForumPost)
+    +void deletePost(Long)
+    +void likePost(Long, Long)
+    +Comment commentOnPost(Long, Comment, Long)
+    +ForumPostResponse toForumPostResponse(ForumPost)
+    +CommentDTO convertToCommentDTO(Comment)
+}
+
+interface ForumPostRepository {
+    +Optional<ForumPost> findById(Long)
+    +List<ForumPost> findAll()
+    +ForumPost save(ForumPost)
+    +void deleteById(Long)
+}
+
+interface CommentRepository {
+    +Comment save(Comment)
+}
+
+ForumServiceImpl .down.> ForumService : implements
+ForumServiceImpl --> ForumPostRepository : uses
+ForumServiceImpl --> CommentRepository : uses
+
+ForumPost "1" *-down- "0..*" Comment : contains
+ForumPost o-up- User : author
+Comment o-up- User : author
+
+@enduml
