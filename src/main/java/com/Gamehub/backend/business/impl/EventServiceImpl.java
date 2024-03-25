@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -55,22 +56,30 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public void addParticipant(Long eventId, Long userId) {
+    public Event addParticipant(Long eventId, Long userId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found with id " + eventId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
         event.getParticipants().add(user);
         eventRepository.save(event);
+        return event;
     }
 
     @Override
-    public void removeParticipant(Long eventId, Long userId) {
+    public Event removeParticipant(Long eventId, Long userId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found with id " + eventId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
         event.getParticipants().remove(user);
         eventRepository.save(event);
+        return event;
+    }
+
+    @Override
+    public Set<User> getParticipants(Long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
+        return event.getParticipants();
     }
 }
