@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+
+skinparam lifelineBorderColor Black
+skinparam lifelineBackgroundColor White
+
+skinparam sequenceArrowThickness 2
+skinparam sequenceLifeLineBorderThickness 2
+
+skinparam sequenceParticipant BorderColor Black
+skinparam sequenceParticipant BackgroundColor White
+skinparam sequenceParticipant FontSize 16
+skinparam sequenceParticipant FontColor Black
+
+skinparam sequenceActor BackgroundColor White
+skinparam sequenceActor FontSize 16
+skinparam sequenceActor FontColor Black
+
+skinparam sequenceGroupHeaderFontColor White
+skinparam sequenceGroupBackgroundColor Blue
+skinparam sequenceGroupBorderColor Blue
+
+actor User
+participant "LoginPage" as LoginPage
+participant "Context/State" as State
+participant "HomePage\n/Dashboard" as HomePage
+participant "CreatePostPage" as CreatePostPage
+
+User -> LoginPage : Navigate
+activate LoginPage
+LoginPage -> State : Display Login Form
+State -> User : Submit Credentials
+User -> State : Validate Credentials
+
+alt [Credentials Valid]
+    State -> State : Credentials Valid
+    deactivate State
+    State -> HomePage : Redirect
+    activate HomePage
+    HomePage -> CreatePostPage : Navigate
+    activate CreatePostPage
+    CreatePostPage -> CreatePostPage : Display Post Form
+    CreatePostPage -> State : Submit Post
+    State -> State : Add Post
+    State -> CreatePostPage : Confirm Post Added
+    deactivate CreatePostPage
+    deactivate HomePage
+else [Credentials Invalid]
+    State -> LoginPage : Credentials Invalid
+    deactivate State
+    LoginPage -> User : Display Error Message
+    activate LoginPage
+    deactivate LoginPage
+end
+
+@enduml
