@@ -1,4 +1,8 @@
-Here is the link to my Git repository:
+Here is the link to the backend Git repository:
 
 
 https://git.fhict.nl/I500157/individual-assignment-semester-3
+
+Here is the link to the front end Git repository:
+
+https://git.fhict.nl/I500157/individual-assignment-semester-3-fe

@@ -1,6 +1,9 @@
 @startuml GameHub-SystemContext
 !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 
+
+left to right direction
+
 Person(player, "Player", "A user who plays games and uses GameHub to find and discuss games.")
 Person(gameDeveloper, "Game Developer", "A user who develops games and uses GameHub to showcase and discuss their games.")
 System(gamehub, "GameHub", "A social networking platform dedicated to gamers for connecting, sharing, and discovering games.")

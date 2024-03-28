@@ -1,27 +1,47 @@
-@startuml GameHub-Component
+@startuml
 !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-Container(backendService, "GameHub Backend Service", "Spring Boot Application") {
-    Component(gameService, "Game Service", "Handles operations related to games.")
-    Component(forumService, "Forum Service", "Handles forum post creation and management.")
-    Component(userService, "User Service", "Manages user information and actions.")
-    Component(eventService, "Event Service", "Handles event-related functionality.")
+title Component Diagram for GameHub
 
-    Component(gameController, "Game Controller", "RESTful API endpoints for game operations.")
-    Component(forumController, "Forum Controller", "RESTful API endpoints for forum operations.")
-    Component(userController, "User Controller", "RESTful API endpoints for user operations.")
-    Component(eventController, "Event Controller", "RESTful API endpoints for event operations.")
+Container(webApp, "Single-Page App", "React", "Allows users to interact with the GameHub platform.")
 
-    ComponentDb(gameRepository, "Game Repository", "JPA Repository for accessing game data.")
-    ComponentDb(forumPostRepository, "Forum Post Repository", "JPA Repository for accessing forum posts.")
-    ComponentDb(userRepository, "User Repository", "JPA Repository for accessing user data.")
+Container_Boundary(api, "GameHub Backend Service") {
+    Component(gameController, "Game Controller", "Spring MVC Rest Controller", "RESTful API endpoints for game operations.")
+    Component(forumController, "Forum Controller", "Spring MVC Rest Controller", "RESTful API endpoints for forum operations.")
+    Component(userController, "User Controller", "Spring MVC Rest Controller", "RESTful API endpoints for user operations.")
+    Component(eventController, "Event Controller", "Spring MVC Rest Controller", "RESTful API endpoints for event operations.")
+
+    Component(gameService, "Game Service", "Spring Service", "Handles operations related to games.")
+    Component(forumService, "Forum Service", "Spring Service", "Handles forum post creation and management.")
+    Component(userService, "User Service", "Spring Service", "Manages user information and actions.")
+    Component(eventService, "Event Service", "Spring Service", "Handles event-related functionality.")
+
+    ComponentDb(gameRepository, "Game Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
+    ComponentDb(forumPostRepository, "Forum Post Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
+    ComponentDb(userRepository, "User Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
+    ComponentDb(eventRepository, "Event Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
+
+    Rel(gameController, gameService, "Uses")
+    Rel(forumController, forumService, "Uses")
+    Rel(userController, userService, "Uses")
+    Rel(eventController, eventService, "Uses")
+
+    Rel(gameService, gameRepository, "Reads from and writes to")
+    Rel(forumService, forumPostRepository, "Reads from and writes to")
+    Rel(userService, userRepository, "Reads from and writes to")
+    Rel(eventService, eventRepository, "Reads from and writes to")
 }
 
-Rel(gameController, gameService, "Uses")
-Rel(forumController, forumService, "Uses")
-Rel(userController, userService, "Uses")
-Rel(eventController, eventService, "Uses")
-Rel(gameService, gameRepository, "Reads from and writes to")
-Rel(forumService, forumPostRepository, "Reads from and writes to")
-Rel(userService, userRepository, "Reads from and writes to")
+ContainerDb(database, "Database", "MySQL", "Stores all the platform's data.")
+
+Rel(webApp, userController, "Makes API calls to")
+Rel(webApp, forumController, "Makes API calls to")
+Rel(webApp, gameController, "Makes API calls to")
+Rel(webApp, eventController, "Makes API calls to")
+
+Rel(userRepository, database, "Reads from and writes to")
+Rel(forumPostRepository, database, "Reads from and writes to")
+Rel(gameRepository, database, "Reads from and writes to")
+Rel(eventRepository, database, "Reads from and writes to")
+
 @enduml
