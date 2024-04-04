@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -54,7 +55,8 @@ public class EventController {
 
 
     @PostMapping("/{eventId}/participants")
-    public ResponseEntity<Event> addParticipantToEvent(@PathVariable Long eventId, @RequestBody Long userId) {
+    public ResponseEntity<Event> addParticipantToEvent(@PathVariable Long eventId, @RequestBody Map<String, Long> payload) {
+        Long userId = payload.get("userId");
         Event eventWithNewParticipant = eventService.addParticipant(eventId, userId);
         return new ResponseEntity<>(eventWithNewParticipant, HttpStatus.OK);
     }
