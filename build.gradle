@@ -15,7 +15,7 @@ sonar {
 		property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
 		property "sonar.projectKey", "Gamehub"
 		property "sonar.organization", "myOrganization"
-		property "sonar.host.url", "http://localhost:9090"
+		property "sonar.host.url", "http://localhost:9000"
 		property "sonar.token", "sqp_c28c48810a66d1c3cb0daca67989c0fb8f20f41b"
 		property "sonar.qualitygate.wait", true
 	}

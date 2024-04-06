@@ -33,4 +33,3 @@ sonarqube-check:
     - develop
     - feature
 
-  
