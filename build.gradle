@@ -2,10 +2,30 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.3'
 	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.sonarqube' version '4.4.1.3373'
+	id 'jacoco'
 }
 
 group = 'com.Gamehub'
 version = '0.0.1-SNAPSHOT'
+
+sonar {
+	properties {
+		property "sonar.java.coveragePlugin", "jacoco"
+		property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+		property "sonar.projectKey", "Gamehub"
+		property "sonar.organization", "myOrganization"
+		property "sonar.host.url", "http://localhost:9090"
+		property "sonar.token", "sqp_c28c48810a66d1c3cb0daca67989c0fb8f20f41b"
+		property "sonar.qualitygate.wait", true
+	}
+}
+
+jacocoTestReport {
+	reports {
+		xml.required.set(true)
+	}
+}
 
 java {
 	sourceCompatibility = '17'
@@ -34,4 +54,12 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+test {
+	finalizedBy jacocoTestReport
+}
+
+tasks.named('sonar').configure {
+	dependsOn test
 }
