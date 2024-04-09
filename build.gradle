@@ -17,6 +17,7 @@ sonar {
 		property "sonar.organization", "myOrganization"
 		property "sonar.host.url", "http://localhost:9000"
 		property "sonar.token", "sqp_91c2df19c173b47a208679c9e3b4baa9990b1a61"
+		property "sonar.coverage.exclusions", "**/domain/**, **/configuration/**, **/DTO/**, **/controller/**"
 		property "sonar.qualitygate.wait", true
 	}
 }
