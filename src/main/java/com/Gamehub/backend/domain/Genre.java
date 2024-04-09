@@ -1,6 +1,9 @@
 package com.Gamehub.backend.domain;
 
+import jakarta.persistence.Table;
 
+
+@Table(name = "genres")
 public enum Genre {
     ACTION,
     ADVENTURE,
