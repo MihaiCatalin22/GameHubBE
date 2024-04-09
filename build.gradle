@@ -16,7 +16,7 @@ sonar {
 		property "sonar.projectKey", "Gamehub"
 		property "sonar.organization", "myOrganization"
 		property "sonar.host.url", "http://localhost:9000"
-		property "sonar.token", "sqp_c28c48810a66d1c3cb0daca67989c0fb8f20f41b"
+		property "sonar.token", "sqp_91c2df19c173b47a208679c9e3b4baa9990b1a61"
 		property "sonar.qualitygate.wait", true
 	}
 }
