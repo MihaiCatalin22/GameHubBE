@@ -1,5 +1,6 @@
 package com.Gamehub.backend.controller;
 
+import com.Gamehub.backend.DTO.CommentDTO;
 import com.Gamehub.backend.DTO.ForumPostResponse;
 import com.Gamehub.backend.business.ForumService;
 import com.Gamehub.backend.domain.Comment;
@@ -73,6 +74,16 @@ public class ForumController {
         try {
             Comment createdComment = forumService.commentOnPost(postId, comment, userId);
             return new ResponseEntity<>(createdComment, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/posts/{postId}/comments")
+    public ResponseEntity<List<CommentDTO>> getCommentsByPostId(@PathVariable Long postId) {
+        try {
+            List<CommentDTO> comments = forumService.getCommentsByPostId(postId);
+            return new ResponseEntity<>(comments, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

@@ -77,6 +77,16 @@ public class ForumServiceImpl implements ForumService {
         return commentRepository.save(comment);
     }
 
+    @Override
+    public List<CommentDTO> getCommentsByPostId(Long postId) {
+        ForumPost post = forumPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException(("Post not found with id: " + postId)));
+
+        return post.getComments().stream()
+                .map(this::convertToCommentDTO)
+                .collect(Collectors.toList());
+    }
+
     private ForumPostResponse toForumPostResponse(ForumPost post) {
         List<CommentDTO> commentDTOs = post.getComments().stream()
                 .map(this::convertToCommentDTO)
