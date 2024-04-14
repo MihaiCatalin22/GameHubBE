@@ -1,5 +1,6 @@
 package com.Gamehub.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,4 +35,8 @@ public class Game {
     private Date releaseDate;
 
     private String developer;
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Set<Review> reviews = new HashSet<>();
 }
