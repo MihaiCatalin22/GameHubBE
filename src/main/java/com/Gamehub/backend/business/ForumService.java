@@ -1,6 +1,7 @@
 package com.Gamehub.backend.business;
 
 
+import com.Gamehub.backend.DTO.CommentDTO;
 import com.Gamehub.backend.DTO.ForumPostResponse;
 import com.Gamehub.backend.domain.Comment;
 import com.Gamehub.backend.domain.ForumPost;
@@ -16,4 +17,5 @@ public interface ForumService {
     void deletePost(Long id);
     void likePost(Long postId, Long userId);
     Comment commentOnPost(Long postId, Comment comment, Long userId);
+    List<CommentDTO> getCommentsByPostId(Long postId);
 }

@@ -1,6 +1,7 @@
 package com.Gamehub.backend.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private List<Role> roles = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference(value = "user-review")
+    private List<Review> reviews = new ArrayList<>();
     public User() {}
 
     public User(String username, String email, String password) {

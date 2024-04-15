@@ -1,13 +1,12 @@
 package com.Gamehub.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "games")
@@ -34,4 +33,8 @@ public class Game {
     private Date releaseDate;
 
     private String developer;
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
+    @JsonManagedReference (value = "game-review")
+    private List<Review> reviews = new ArrayList<>();
 }

@@ -1,5 +1,6 @@
 package com.Gamehub.backend.business.impl;
 
+import com.Gamehub.backend.DTO.CommentDTO;
 import com.Gamehub.backend.domain.ForumPost;
 import com.Gamehub.backend.domain.User;
 import com.Gamehub.backend.domain.Comment;
@@ -218,4 +219,38 @@ class ForumServiceImplTest {
         assertEquals(comment.getId(), createdComment.getId());
         verify(commentRepository).save(any(Comment.class));
     }
+    @Test
+    void commentOnNonexistentPost() {
+        Long nonExistentPostId = 999L;
+        when(forumPostRepository.findById(nonExistentPostId)).thenReturn(Optional.empty());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            forumService.commentOnPost(nonExistentPostId, comment, 1L);
+        });
+
+        assertTrue(exception.getMessage().contains("Post not found"));
+    }
+    @Test
+    void getCommentsByExistingPostId() {
+        when(forumPostRepository.findById(1L)).thenReturn(Optional.of(forumPost));
+
+        List<CommentDTO> comments = forumService.getCommentsByPostId(1L);
+
+        assertFalse(comments.isEmpty());
+        assertEquals(1, comments.size());
+        assertEquals(comment.getContent(), comments.get(0).getContent());
+    }
+    @Test
+    void getCommentsByNonexistentPostId() {
+        Long nonExistentPostId = 999L;
+        when(forumPostRepository.findById(nonExistentPostId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            forumService.getCommentsByPostId(nonExistentPostId);
+        });
+
+        assertTrue(exception.getMessage().contains("Post not found with id: " + nonExistentPostId));
+    }
+
 }
