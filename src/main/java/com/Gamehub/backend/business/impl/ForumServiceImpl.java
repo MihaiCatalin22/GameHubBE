@@ -84,13 +84,13 @@ public class ForumServiceImpl implements ForumService {
 
         return post.getComments().stream()
                 .map(this::convertToCommentDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private ForumPostResponse toForumPostResponse(ForumPost post) {
         List<CommentDTO> commentDTOs = post.getComments().stream()
                 .map(this::convertToCommentDTO)
-                .collect(Collectors.toList());
+                .toList();
 
         AuthorInfo authorInfo = new AuthorInfo(post.getAuthor().getId(), post.getAuthor().getUsername());
         return new ForumPostResponse(

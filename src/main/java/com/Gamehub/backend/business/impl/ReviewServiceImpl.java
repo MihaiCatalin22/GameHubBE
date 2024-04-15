@@ -1,7 +1,11 @@
 package com.Gamehub.backend.business.impl;
 
 import com.Gamehub.backend.domain.Review;
+import com.Gamehub.backend.domain.User;
+import com.Gamehub.backend.domain.Game;
 import com.Gamehub.backend.persistence.ReviewRepository;
+import com.Gamehub.backend.persistence.UserRepository;
+import com.Gamehub.backend.persistence.GameRepository;
 import com.Gamehub.backend.business.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,23 +16,29 @@ import java.util.Optional;
 @Service
 public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
-
+    private final UserRepository userRepository;
+    private final GameRepository gameRepository;
     @Autowired
-    public ReviewServiceImpl(ReviewRepository reviewRepository) {
+    public ReviewServiceImpl(ReviewRepository reviewRepository, UserRepository userRepository, GameRepository gameRepository) {
         this.reviewRepository = reviewRepository;
+        this.userRepository = userRepository;
+        this.gameRepository = gameRepository;
     }
 
     @Override
-    public Review createReview(Review review) {
+    public Review createReview(Review review, Long userId, Long gameId) {
         if (review == null || review.getGame() == null || review.getUser() == null) {
             throw new IllegalArgumentException("Review, Game, and User cannot be null");
         }
-        if (review.getRating() == null || review.getRating() < 1 || review.getRating() > 5) {
-            throw new IllegalArgumentException("Rating must be between 1 and 5");
-        }
-        if (review.getComment() == null || review.getComment().trim().isEmpty()) {
-            throw new IllegalArgumentException("Comment cannot be empty");
-        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found."));
+
+        review.setUser(user);
+        review.setGame(game);
+
         return reviewRepository.save(review);
     }
 

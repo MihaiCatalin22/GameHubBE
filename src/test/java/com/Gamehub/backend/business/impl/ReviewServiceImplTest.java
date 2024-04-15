@@ -4,11 +4,14 @@ import com.Gamehub.backend.domain.Review;
 import com.Gamehub.backend.domain.User;
 import com.Gamehub.backend.domain.Game;
 import com.Gamehub.backend.persistence.ReviewRepository;
+import com.Gamehub.backend.persistence.UserRepository;
+import com.Gamehub.backend.persistence.GameRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
@@ -20,6 +23,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReviewServiceImplTest {
     @Mock
     private ReviewRepository reviewRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private GameRepository gameRepository;
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
@@ -45,10 +52,15 @@ class ReviewServiceImplTest {
         review.setRating(5);
         review.setComment("Excellent game with great mechanics.");
     }
+
+
     @Test
     void createReview() {
+        Mockito.lenient().when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        Mockito.lenient().when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
         when(reviewRepository.save(any(Review.class))).thenReturn(review);
-        Review createdReview = reviewService.createReview(review);
+
+        Review createdReview = reviewService.createReview(review, user.getId(), game.getId());
 
         assertNotNull(createdReview);
         assertEquals(review.getId(), createdReview.getId());
@@ -56,21 +68,11 @@ class ReviewServiceImplTest {
     }
     @Test
     void createReviewWithNullReview() {
-        Review invalidReview = new Review();
+        Long userId = user.getId();
+        Long gameId = game.getId();
 
         assertThrows(IllegalArgumentException.class, () -> {
-            reviewService.createReview(null);
-        });
-
-        invalidReview.setGame(null);
-        assertThrows(IllegalArgumentException.class, () -> {
-            reviewService.createReview(invalidReview);
-        });
-
-        invalidReview.setGame(new Game());
-        invalidReview.setUser(null);
-        assertThrows(IllegalArgumentException.class, () -> {
-            reviewService.createReview(invalidReview);
+            reviewService.createReview(null, userId, gameId);
         });
     }
 
@@ -83,13 +85,16 @@ class ReviewServiceImplTest {
         assertEquals(review.getId(), foundReview.get().getId());
         verify(reviewRepository).findById(1L);
     }
+
     @Test
     void getReviewByNonexistentId() {
         when(reviewRepository.findById(999L)).thenReturn(Optional.empty());
         Optional<Review> result = reviewService.getReviewsById(999L);
+
         assertFalse(result.isPresent());
         verify(reviewRepository).findById(999L);
     }
+
     @Test
     void getAllReviews() {
         when(reviewRepository.findAll()).thenReturn(Arrays.asList(review));
@@ -116,6 +121,7 @@ class ReviewServiceImplTest {
         assertEquals(4, updatedReview.getRating());
         verify(reviewRepository).save(review);
     }
+
     @Test
     void updateNonexistentReview() {
         Review updatedReviewData = new Review();
@@ -138,6 +144,7 @@ class ReviewServiceImplTest {
 
         verify(reviewRepository).deleteById(1L);
     }
+
     @Test
     void deleteNonexistentReview() {
         doThrow(new RuntimeException("Review not found.")).when(reviewRepository).deleteById(999L);

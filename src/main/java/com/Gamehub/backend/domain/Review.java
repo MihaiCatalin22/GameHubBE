@@ -21,11 +21,12 @@ public class Review {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonBackReference(value = "user-review")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id")
-    @JsonBackReference
+    @JsonBackReference(value = "game-review")
     private Game game;
 
     @Column(nullable = false)

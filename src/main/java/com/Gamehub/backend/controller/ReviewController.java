@@ -3,6 +3,7 @@ package com.Gamehub.backend.controller;
 import com.Gamehub.backend.domain.Review;
 import com.Gamehub.backend.business.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +19,14 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @PostMapping
-    public ResponseEntity<Review> createReview(@RequestBody Review review) {
-        Review createdReview = reviewService.createReview(review);
-        return ResponseEntity.ok(createdReview);
+    @PostMapping("/games/{gameId}/review")
+    public ResponseEntity<Review> addReviewToGame(@PathVariable Long gameId, @RequestBody Review review, @RequestParam Long userId) {
+        try {
+            Review createdReview = reviewService.createReview(review, userId, gameId);
+            return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping
@@ -36,7 +41,7 @@ public class ReviewController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    @GetMapping("/game/{gameId}")
+    @GetMapping("/games/{gameId}")
     public ResponseEntity<List<Review>> getReviewsByGameId(@PathVariable Long gameId) {
         List<Review> reviews = reviewService.getReviewsByGameId(gameId);
         return ResponseEntity.ok(reviews);

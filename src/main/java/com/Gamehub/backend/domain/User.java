@@ -26,7 +26,7 @@ public class User {
     private List<Role> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference(value = "user-review")
     private List<Review> reviews = new ArrayList<>();
     public User() {}
 
