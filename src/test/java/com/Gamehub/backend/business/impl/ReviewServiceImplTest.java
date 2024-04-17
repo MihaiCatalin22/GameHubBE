@@ -104,7 +104,55 @@ class ReviewServiceImplTest {
         assertEquals(1, reviews.size());
         verify(reviewRepository).findAll();
     }
+    @Test
+    void GetReviewsByGameId() {
+        Long gameId = 1L;
+        Review review1 = new Review();
+        Review review2 = new Review();
+        List<Review> mockReviews = Arrays.asList(review1, review2);
+        when(reviewRepository.findByGameId(gameId)).thenReturn(mockReviews);
 
+        List<Review> reviews = reviewService.getReviewsByGameId(gameId);
+
+        assertNotNull(reviews);
+        assertEquals(2, reviews.size());
+        verify(reviewRepository).findByGameId(gameId);
+    }
+    @Test
+    void GetReviewsByGameIdWithNoReviewsFound() {
+        Long gameId = 2L;
+        when(reviewRepository.findByGameId(gameId)).thenReturn(Collections.emptyList());
+
+        List<Review> reviews = reviewService.getReviewsByGameId(gameId);
+
+        assertTrue(reviews.isEmpty());
+        verify(reviewRepository).findByGameId(gameId);
+    }
+
+    @Test
+    void GetReviewsByUserIdWithNoReviewsFound() {
+        Long userId = 2L;
+        when(reviewRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
+
+        List<Review> reviews = reviewService.getReviewsByUserId(userId);
+
+        assertTrue(reviews.isEmpty());
+        verify(reviewRepository).findByUserId(userId);
+    }
+    @Test
+    void GetReviewsByUserId() {
+        Long userId = 1L;
+        Review review1 = new Review();
+        Review review2 = new Review();
+        List<Review> mockReviews = Arrays.asList(review1, review2);
+        when(reviewRepository.findByUserId(userId)).thenReturn(mockReviews);
+
+        List<Review> reviews = reviewService.getReviewsByUserId(userId);
+
+        assertNotNull(reviews);
+        assertEquals(2, reviews.size());
+        verify(reviewRepository).findByUserId(userId);
+    }
     @Test
     void updateReview() {
         Review updatedReviewData = new Review();

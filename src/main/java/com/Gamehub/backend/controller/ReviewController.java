@@ -21,23 +21,17 @@ public class ReviewController {
     }
 
     @PostMapping("/games/{gameId}/review")
-    public ResponseEntity<?> addReviewToGame(@PathVariable Long gameId, @RequestBody Review review, @RequestParam Long userId) {
+    public ResponseEntity<Review> addReviewToGame(@PathVariable Long gameId, @RequestBody Review review, @RequestParam Long userId) {
         try {
             Review createdReview = reviewService.createReview(review, userId, gameId);
             return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing your request");
+            Review errorReview = new Review();
+            errorReview.setComment("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorReview);
         }
-        }
-//        try {
-//            Review createdReview = reviewService.createReview(review, userId, gameId);
-//            return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
-//        } catch (RuntimeException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//    }
+    }
+
 
     @GetMapping
     public ResponseEntity<List<Review>> getAllReviews() {
