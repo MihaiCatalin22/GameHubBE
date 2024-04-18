@@ -6,26 +6,41 @@ title Component Diagram for GameHub
 Container(webApp, "Single-Page App", "React", "Allows users to interact with the GameHub platform.")
 
 Container_Boundary(api, "GameHub Backend Service") {
+    Component(categoryController, "Category Controller", "Spring MVC Rest Controller", "RESTful API endpoints for category operations.")
+    Component(genreController, "Genre Controller", "Spring MVC Rest Controller", "RESTful API endpoints for genre operations.")
+    Component(reviewController, "Review Controller", "Spring MVC Rest Controller", "RESTful API endpoints for review operations.")
     Component(gameController, "Game Controller", "Spring MVC Rest Controller", "RESTful API endpoints for game operations.")
     Component(forumController, "Forum Controller", "Spring MVC Rest Controller", "RESTful API endpoints for forum operations.")
     Component(userController, "User Controller", "Spring MVC Rest Controller", "RESTful API endpoints for user operations.")
     Component(eventController, "Event Controller", "Spring MVC Rest Controller", "RESTful API endpoints for event operations.")
 
+    Component(categoryService, "Category Service", "Spring Service", "Handles operations related to categories.")
+    Component(genreService, "Genre Service", "Spring Service", "Handles operations related to genres.")
+    Component(reviewService, "Review Service", "Spring Service", "Handles review-related functionality.")
     Component(gameService, "Game Service", "Spring Service", "Handles operations related to games.")
     Component(forumService, "Forum Service", "Spring Service", "Handles forum post creation and management.")
     Component(userService, "User Service", "Spring Service", "Manages user information and actions.")
     Component(eventService, "Event Service", "Spring Service", "Handles event-related functionality.")
 
+    ComponentDb(categoryRepository, "Category Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
+    ComponentDb(genreRepository, "Genre Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
+    ComponentDb(reviewRepository, "Review Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(gameRepository, "Game Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(forumPostRepository, "Forum Post Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(userRepository, "User Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(eventRepository, "Event Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
 
+    Rel(categoryController, categoryService, "Uses")
+    Rel(genreController, genreService, "Uses")
+    Rel(reviewController, reviewService, "Uses")
     Rel(gameController, gameService, "Uses")
     Rel(forumController, forumService, "Uses")
     Rel(userController, userService, "Uses")
     Rel(eventController, eventService, "Uses")
 
+    Rel(categoryService, categoryRepository, "Reads from and writes to")
+    Rel(genreService, genreRepository, "Reads from and writes to")
+    Rel(reviewService, reviewRepository, "Reads from and writes to")
     Rel(gameService, gameRepository, "Reads from and writes to")
     Rel(forumService, forumPostRepository, "Reads from and writes to")
     Rel(userService, userRepository, "Reads from and writes to")
@@ -34,14 +49,20 @@ Container_Boundary(api, "GameHub Backend Service") {
 
 ContainerDb(database, "Database", "MySQL", "Stores all the platform's data.")
 
-Rel(webApp, userController, "Makes API calls to")
-Rel(webApp, forumController, "Makes API calls to")
+Rel(webApp, categoryController, "Makes API calls to")
+Rel(webApp, genreController, "Makes API calls to")
+Rel(webApp, reviewController, "Makes API calls to")
 Rel(webApp, gameController, "Makes API calls to")
+Rel(webApp, forumController, "Makes API calls to")
+Rel(webApp, userController, "Makes API calls to")
 Rel(webApp, eventController, "Makes API calls to")
 
-Rel(userRepository, database, "Reads from and writes to")
-Rel(forumPostRepository, database, "Reads from and writes to")
+Rel(categoryRepository, database, "Reads from and writes to")
+Rel(genreRepository, database, "Reads from and writes to")
+Rel(reviewRepository, database, "Reads from and writes to")
 Rel(gameRepository, database, "Reads from and writes to")
+Rel(forumPostRepository, database, "Reads from and writes to")
+Rel(userRepository, database, "Reads from and writes to")
 Rel(eventRepository, database, "Reads from and writes to")
 
 @enduml
