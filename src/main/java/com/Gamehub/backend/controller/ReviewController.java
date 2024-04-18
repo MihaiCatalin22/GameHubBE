@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/reviews")
 public class ReviewController {
     private final ReviewService reviewService;
@@ -24,10 +25,13 @@ public class ReviewController {
         try {
             Review createdReview = reviewService.createReview(review, userId, gameId);
             return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (IllegalArgumentException e) {
+            Review errorReview = new Review();
+            errorReview.setComment("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorReview);
         }
     }
+
 
     @GetMapping
     public ResponseEntity<List<Review>> getAllReviews() {

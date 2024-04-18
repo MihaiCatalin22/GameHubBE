@@ -1,11 +1,11 @@
 package com.Gamehub.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+
 
 import jakarta.persistence.*;
 import java.util.Date;
@@ -28,11 +28,11 @@ public class Event {
     private String description;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
     private Date startDate;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @UpdateTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
     private Date endDate;
 
     @ManyToMany

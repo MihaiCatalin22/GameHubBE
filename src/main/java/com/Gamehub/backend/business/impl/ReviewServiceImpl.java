@@ -27,10 +27,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Review createReview(Review review, Long userId, Long gameId) {
-        if (review == null || review.getGame() == null || review.getUser() == null) {
-            throw new IllegalArgumentException("Review, Game, and User cannot be null");
-        }
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
         Game game = gameRepository.findById(gameId)
