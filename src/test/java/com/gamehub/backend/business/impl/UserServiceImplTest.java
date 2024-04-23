@@ -109,7 +109,7 @@ class UserServiceImplTest {
         secondUser.setUsername("anotherUser");
         secondUser.setEmail("another@example.com");
         secondUser.setPasswordHash("hashedPasswordAnother");
-        
+
         List<User> userList = Arrays.asList(user, secondUser);
         when(userRepository.findAll()).thenReturn(userList);
         when(jwtUtil.generateToken(user.getUsername())).thenReturn("dummyToken");

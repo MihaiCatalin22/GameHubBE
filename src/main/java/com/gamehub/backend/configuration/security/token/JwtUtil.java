@@ -35,7 +35,6 @@ public class JwtUtil {
             final String usernameFromToken = extractUsername(token);
             return username.equals(usernameFromToken);
     } catch (Exception e) {
-            System.out.println("Error validating token: " + e);
         return false;
     }}
 
@@ -49,15 +48,10 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
-            System.out.println("Error extracting claims: " + e.getMessage());
-            return null;
-        }
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

@@ -62,9 +62,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<UserDTO> login(@RequestBody UserDTO userDTO) {
         return userService.login(userDTO)
-                .map(dto -> {
-                    return ResponseEntity.ok().header("Authorization", "Bearer " + dto.getJwt()).body(dto);
-                })
+                .map(dto -> ResponseEntity.ok().header("Authorization", "Bearer " + dto.getJwt()).body(dto))
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 }

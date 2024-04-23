@@ -34,7 +34,7 @@ public interface UserMapper {
             user.setRoles(userDTO.getRole().stream()
                     .map(String::toUpperCase)
                     .map(Role::valueOf)
-                    .collect(Collectors.toList()));
+                    .toList());
         }
     }
 }
