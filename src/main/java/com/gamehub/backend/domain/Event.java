@@ -25,7 +25,7 @@ public class Event {
     private String name;
 
     @Lob
-
+    @Column(columnDefinition="TEXT")
     private String description;
 
     @Temporal(TemporalType.TIMESTAMP)

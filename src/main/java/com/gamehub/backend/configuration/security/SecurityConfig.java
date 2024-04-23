@@ -26,6 +26,7 @@ public class SecurityConfig {
                         .requestMatchers("/games/**", "/reviews/**", "/forum/**").authenticated()
                         .requestMatchers("/events/**").hasRole("USER")
                         .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
