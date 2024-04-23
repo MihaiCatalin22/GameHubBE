@@ -6,6 +6,7 @@ import com.gamehub.backend.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,12 +24,14 @@ public class EventController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER')")
     public ResponseEntity<Event> createEvent(@RequestBody Event event) {
         Event createdEvent = eventService.createEvent(event);
         return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Event> getEventById(@PathVariable Long id) {
         Event event = eventService.getEventById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found with id " + id));
@@ -36,18 +39,21 @@ public class EventController {
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Event>> getAllEvents() {
         List<Event> events = eventService.getAllEvents();
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER')")
     public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event eventDetails) {
         Event updatedEvent = eventService.updateEvent(id, eventDetails);
         return ResponseEntity.ok(updatedEvent);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER')")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
@@ -55,6 +61,7 @@ public class EventController {
 
 
     @PostMapping("/{eventId}/participants")
+    @PreAuthorize("#payload['userId'] == authentication.principal.id")
     public ResponseEntity<Event> addParticipantToEvent(@PathVariable Long eventId, @RequestBody Map<String, Long> payload) {
         Long userId = payload.get("userId");
         Event eventWithNewParticipant = eventService.addParticipant(eventId, userId);
@@ -62,12 +69,14 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}/participants/{userId}")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER') or #userId == authentication.principal.id")
     public ResponseEntity<Event> removeParticipantFromEvent(@PathVariable Long eventId, @PathVariable Long userId) {
         Event eventWithoutParticipant = eventService.removeParticipant(eventId, userId);
         return new ResponseEntity<>(eventWithoutParticipant, HttpStatus.OK);
     }
 
     @GetMapping("/{eventId}/participants")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER')")
     public ResponseEntity<Set<User>> getParticipantsOfEvent(@PathVariable Long eventId) {
         Set<User> participants = eventService.getParticipants(eventId);
         return new ResponseEntity<>(participants, HttpStatus.OK);

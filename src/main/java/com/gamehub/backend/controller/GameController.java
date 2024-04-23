@@ -5,6 +5,7 @@ import com.gamehub.backend.business.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class GameController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<Game> createGame(@RequestBody Game game) {
         Game createdGame = gameService.createGame(game);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
@@ -39,6 +41,7 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<Game> updateGame(@PathVariable Long id, @RequestBody Game game) {
         try {
             Game updatedGame = gameService.updateGame(id, game);
@@ -49,6 +52,7 @@ public class GameController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         try {
             gameService.deleteGame(id);

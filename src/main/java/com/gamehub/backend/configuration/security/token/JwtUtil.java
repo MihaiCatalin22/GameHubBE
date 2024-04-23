@@ -31,24 +31,33 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token, String username) {
-        final String usernameFromToken = extractUsername(token);
-        return username.equals(usernameFromToken);
-    }
+        try {
+            final String usernameFromToken = extractUsername(token);
+            return username.equals(usernameFromToken);
+    } catch (Exception e) {
+            System.out.println("Error validating token: " + e);
+        return false;
+    }}
+
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            System.out.println("Error extracting claims: " + e.getMessage());
+            return null;
+        }
     }
 }

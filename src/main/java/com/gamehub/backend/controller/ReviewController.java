@@ -5,6 +5,7 @@ import com.gamehub.backend.business.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class ReviewController {
     }
 
     @PostMapping("/games/{gameId}/review")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Review> addReviewToGame(@PathVariable Long gameId, @RequestBody Review review, @RequestParam Long userId) {
         try {
             Review createdReview = reviewService.createReview(review, userId, gameId);
@@ -58,12 +60,14 @@ public class ReviewController {
     }
 
     @PutMapping("/{reviewId}")
+    @PreAuthorize("#review.userId == authentication.principal.userId")
     public ResponseEntity<Review> updateReview(@PathVariable Long reviewId, @RequestBody Review review) {
         Review updatedReview = reviewService.updateReview(reviewId, review);
         return ResponseEntity.ok(updatedReview);
     }
 
     @DeleteMapping("/{reviewId}")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.ok().build();

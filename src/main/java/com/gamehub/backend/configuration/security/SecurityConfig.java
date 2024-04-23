@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -21,16 +23,17 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/users/login", "/users").permitAll()
-                        .requestMatchers("/categories/**", "/genres/**").permitAll()
-                        .requestMatchers("/games/**", "/reviews/**", "/forum/**").authenticated()
-                        .requestMatchers("/events/**").hasRole("USER")
-                        .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll()
-                        .anyRequest().authenticated())
+                .requestMatchers("/users/login", "/register").permitAll()
+                .requestMatchers("/categories/**", "/genres/**").permitAll()
+                .requestMatchers("/games/**", "/reviews/**", "/forum/**").authenticated()
+                .requestMatchers("/events/**").hasAnyAuthority("USER", "ADMINISTRATOR", "COMMUNITY_MANAGER")
+                .requestMatchers("/admin/**").hasAuthority("ADMINISTRATOR")
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll()
+                .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
 
 
         return http.build();
