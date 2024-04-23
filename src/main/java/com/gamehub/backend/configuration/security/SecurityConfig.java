@@ -21,13 +21,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/authors/login", "/api/authors", "/api/stay-listings/**", "/api/authors/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll()
-//                        .anyRequest().authenticated())
-                        .anyRequest().permitAll())
+                        .requestMatchers("/users/login", "/users").permitAll()
+                        .requestMatchers("/categories/**", "/genres/**").permitAll()
+                        .requestMatchers("/games/**", "/reviews/**", "/forum/**").authenticated()
+                        .requestMatchers("/events/**").hasRole("USER")
+                        .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
+                        .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
