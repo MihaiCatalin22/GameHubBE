@@ -4,11 +4,13 @@ import com.gamehub.backend.dto.UserDTO;
 import com.gamehub.backend.configuration.security.token.JwtUtil;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.persistence.UserRepository;
+import com.gamehub.backend.persistence.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -30,6 +32,8 @@ class UserServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private UserMapper userMapper;
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -52,8 +56,32 @@ class UserServiceImplTest {
         lenient().when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
         lenient().when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
         lenient().when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-    }
 
+        lenient().when(userMapper.toDto(any(User.class))).thenAnswer(invocation -> {
+            User model = invocation.getArgument(0);
+            UserDTO dto = new UserDTO();
+            dto.setId(model.getId());
+            dto.setUsername(model.getUsername());
+            dto.setEmail(model.getEmail());
+            dto.setJwt(jwtUtil.generateToken(model.getUsername()));
+            return dto;
+        });
+
+        lenient().when(userMapper.toEntity(any(UserDTO.class))).thenAnswer(invocation -> {
+            UserDTO dto = invocation.getArgument(0);
+            User model = new User();
+            model.setId(dto.getId());
+            model.setUsername(dto.getUsername());
+            model.setEmail(dto.getEmail());
+            model.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+            return model;
+        });
+    }
+    @BeforeEach
+    void resetMocks() {
+        Mockito.reset(jwtUtil, userRepository);
+        when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
+    }
     @Test
     void createUser() {
         when(userRepository.save(any(User.class))).thenReturn(user);
@@ -62,24 +90,41 @@ class UserServiceImplTest {
         verify(userRepository).save(any(User.class));
         assertEquals("dummyToken", createdUserDTO.getJwt());
     }
-
     @Test
     void getUserById() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
+
         Optional<UserDTO> foundUserDTO = userService.getUserById(1L);
+
         assertTrue(foundUserDTO.isPresent());
-        assertEquals(user.getId(), foundUserDTO.get().getId());
         assertEquals("dummyToken", foundUserDTO.get().getJwt());
+        verify(jwtUtil).generateToken(user.getUsername());
     }
 
     @Test
     void getAllUsers() {
-        when(userRepository.findAll()).thenReturn(Arrays.asList(user));
+        User secondUser = new User();
+        secondUser.setId(2L);
+        secondUser.setUsername("anotherUser");
+        secondUser.setEmail("another@example.com");
+        secondUser.setPasswordHash("hashedPasswordAnother");
+        
+        List<User> userList = Arrays.asList(user, secondUser);
+        when(userRepository.findAll()).thenReturn(userList);
+        when(jwtUtil.generateToken(user.getUsername())).thenReturn("dummyToken");
+        when(jwtUtil.generateToken(secondUser.getUsername())).thenReturn("dummyToken");
         List<UserDTO> users = userService.getAllUsers();
-        assertFalse(users.isEmpty());
-        assertEquals(1, users.size());
+
+        assertFalse(users.isEmpty(), "The user list should not be empty.");
+        assertEquals(userList.size(), users.size(), "The size of the user lists should match.");
+
+        for (UserDTO dto : users) {
+            assertEquals("dummyToken", dto.getJwt(), "The JWT token should match the expected dummy token.");
+        }
+
         verify(userRepository).findAll();
-        assertEquals("dummyToken", users.get(0).getJwt());
+        verify(jwtUtil, times(userList.size())).generateToken(anyString());
     }
 
     @Test
@@ -122,3 +167,4 @@ class UserServiceImplTest {
         verify(passwordEncoder).matches("password123", "hashedPassword");
     }
 }
+
