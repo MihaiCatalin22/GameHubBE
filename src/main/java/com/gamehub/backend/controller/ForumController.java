@@ -1,5 +1,6 @@
 package com.gamehub.backend.controller;
 
+import com.gamehub.backend.configuration.security.CustomUserDetails;
 import com.gamehub.backend.dto.CommentDTO;
 import com.gamehub.backend.dto.ForumPostResponse;
 import com.gamehub.backend.business.ForumService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,17 +61,20 @@ public class ForumController {
     }
 
     @DeleteMapping("/posts/{id}")
-    @PreAuthorize("hasAuthority('ADMINISTRATOR') or #userId == authentication.principal.id")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<Void> deletePost(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails currentUser) {
         forumService.deletePost(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/posts/{postId}/like")
-    @PreAuthorize("#userId != authentication.principal.id")
-    public ResponseEntity<Void> likePost(@PathVariable Long postId, @RequestParam Long userId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
-            forumService.likePost(postId, userId);
+            if(currentUser.getId().equals(postId)) {
+                throw new IllegalArgumentException("Cannot like your own post");
+            }
+            forumService.likePost(postId, currentUser.getId());
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -85,6 +90,12 @@ public class ForumController {
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+    @DeleteMapping("/posts/{postId}/comments/{commentId}")
+    @PreAuthorize("hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long postId, @PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails currentUser) {
+        forumService.deleteComment(postId, commentId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/posts/{postId}/comments")

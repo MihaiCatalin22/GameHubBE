@@ -33,7 +33,10 @@ public class ForumPost {
     @CreationTimestamp
     private Date creationDate;
 
-    private long likesCount;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "post_likes", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    private Set<Long> likes = new HashSet<>();
 
     @OneToMany(mappedBy = "forumPost", cascade = CascadeType.ALL)
     @JsonManagedReference
@@ -41,5 +44,9 @@ public class ForumPost {
 
     @Enumerated(EnumType.STRING)
     private Category category;
+
+    public long getLikesCount() {
+        return likes.size();
+    }
 }
 

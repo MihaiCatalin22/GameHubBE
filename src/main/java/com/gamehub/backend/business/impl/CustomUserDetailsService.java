@@ -1,5 +1,6 @@
 package com.gamehub.backend.business.impl;
 
+import com.gamehub.backend.configuration.security.CustomUserDetails;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +24,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("No user found with the username: " + username));
-
-
-        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.name()))
-                .collect(Collectors.toList());
-
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPasswordHash(), authorities);
+        return userRepository.findByUsername(username)
+                .map(user -> new CustomUserDetails(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getPasswordHash(),
+                        user.getRoles().stream()
+                                .map(role -> new SimpleGrantedAuthority(role.name()))
+                                .collect(Collectors.toList())
+                ))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 }

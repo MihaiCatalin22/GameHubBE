@@ -23,13 +23,13 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/users/login", "/register").permitAll()
+                .requestMatchers("/users/**","/users/login", "/register").permitAll()
                 .requestMatchers("/categories/**", "/genres/**").permitAll()
                 .requestMatchers("/games/**", "/reviews/**", "/forum/**").authenticated()
                 .requestMatchers("/events/**").hasAnyAuthority("USER", "ADMINISTRATOR", "COMMUNITY_MANAGER")
                 .requestMatchers("/admin/**").hasAuthority("ADMINISTRATOR")
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll()
-                .anyRequest().authenticated())
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll())
+                // .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

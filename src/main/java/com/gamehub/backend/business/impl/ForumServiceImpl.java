@@ -62,8 +62,14 @@ public class ForumServiceImpl implements ForumService {
 
     @Override
     public void likePost(Long postId, Long userId) {
-        ForumPost post = forumPostRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found."));
-        post.setLikesCount(post.getLikesCount() + 1);
+        ForumPost post = forumPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        boolean liked = post.getLikes().contains(userId);
+        if (liked) {
+            post.getLikes().remove(userId);
+        } else {
+            post.getLikes().add(userId);
+        }
         forumPostRepository.save(post);
     }
 
@@ -75,7 +81,17 @@ public class ForumServiceImpl implements ForumService {
         comment.setForumPost(post);
         return commentRepository.save(comment);
     }
+    @Override
+    public void deleteComment(Long postId, Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + commentId));
 
+        if (!comment.getForumPost().getId().equals(postId)) {
+            throw new RuntimeException("Comment does not belong to the specified post");
+        }
+
+        commentRepository.delete(comment);
+    }
     @Override
     public List<CommentDTO> getCommentsByPostId(Long postId) {
         ForumPost post = forumPostRepository.findById(postId)
@@ -92,13 +108,15 @@ public class ForumServiceImpl implements ForumService {
                 .toList();
 
         AuthorInfo authorInfo = new AuthorInfo(post.getAuthor().getId(), post.getAuthor().getUsername());
+        long likesCount = post.getLikesCount();
+
         return new ForumPostResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 authorInfo,
                 post.getCreationDate(),
-                post.getLikesCount(),
+                likesCount,
                 post.getCategory() != null ? post.getCategory().toString() : null,
                 commentDTOs
         );
