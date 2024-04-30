@@ -19,6 +19,7 @@ sonar {
 		property "sonar.token", "sqp_91c2df19c173b47a208679c9e3b4baa9990b1a61"
 		property "sonar.coverage.exclusions", "**/domain/**, **/configuration/**, **/dto/**, **/controller/**, **/BackendApplication.java, **/business/impl/CustomUserDetailsService.java, **/persistence/mapper/UserMapper.java"
 		property "sonar.qualitygate.wait", true
+		property "sonar.gradle.skipCompile", "true"
 	}
 }
 
@@ -64,6 +65,7 @@ dependencies {
 	testImplementation 'org.mockito:mockito-junit-jupiter:4.0.0'
 	testImplementation 'org.mockito:mockito-core:4.0.0'
 	testRuntimeOnly 'com.h2database:h2'
+	runtimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {
@@ -75,5 +77,5 @@ test {
 }
 
 tasks.named('sonar').configure {
-	dependsOn test
+	dependsOn compileJava, test
 }

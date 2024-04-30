@@ -12,11 +12,11 @@ import java.util.Optional;
 public interface ForumService {
     ForumPostResponse createPost(ForumPost post, Long userId);
     Optional<ForumPostResponse> getPostById(Long id);
-    List<ForumPost> getAllPosts();
-    ForumPost updatePost(Long id, ForumPost post);
+    List<ForumPostResponse> getAllPosts();
+    ForumPostResponse updatePost(Long id, ForumPost post, Long userId);
     void deletePost(Long id);
     void likePost(Long postId, Long userId);
-    Comment commentOnPost(Long postId, Comment comment, Long userId);
+    CommentDTO commentOnPost(Long postId, Comment comment, Long userId);
     List<CommentDTO> getCommentsByPostId(Long postId);
     void deleteComment(Long postId, Long commentId);
 }

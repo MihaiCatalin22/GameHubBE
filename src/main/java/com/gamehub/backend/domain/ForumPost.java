@@ -33,10 +33,7 @@ public class ForumPost {
     @CreationTimestamp
     private Date creationDate;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "post_likes", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "user_id")
-    private Set<Long> likes = new HashSet<>();
+    private long likesCount;
 
     @OneToMany(mappedBy = "forumPost", cascade = CascadeType.ALL)
     @JsonManagedReference
@@ -45,8 +42,25 @@ public class ForumPost {
     @Enumerated(EnumType.STRING)
     private Category category;
 
-    public long getLikesCount() {
-        return likes.size();
+    @ElementCollection
+    private Set<Long> likedByUsers = new HashSet<>();
+
+    public void addLike(Long userId) {
+        if (!likedByUsers.contains(userId)) {
+            likedByUsers.add(userId);
+            likesCount++;
+        }
+    }
+
+    public void removeLike(Long userId) {
+        if (likedByUsers.contains(userId)) {
+            likedByUsers.remove(userId);
+            likesCount--;
+        }
+    }
+
+    public boolean isUserLiked(Long userId) {
+        return likedByUsers.contains(userId);
     }
 }
 

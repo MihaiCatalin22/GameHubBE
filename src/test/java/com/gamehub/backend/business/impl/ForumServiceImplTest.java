@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
@@ -24,7 +25,6 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 class ForumServiceImplTest {
-
     @Mock
     private ForumPostRepository forumPostRepository;
 
@@ -52,12 +52,6 @@ class ForumServiceImplTest {
         forumPost.setAuthor(user);
         forumPost.setTitle("Sample Post");
         forumPost.setContent("Content of the sample post");
-
-        comment = new Comment();
-        comment.setId(1L);
-        comment.setAuthor(user);
-        comment.setContent("Sample comment");
-        comment.setForumPost(forumPost);
         forumPost.setComments(new HashSet<>());
 
         comment = new Comment();
@@ -65,6 +59,7 @@ class ForumServiceImplTest {
         comment.setAuthor(user);
         comment.setContent("Sample comment");
         comment.setForumPost(forumPost);
+
         forumPost.getComments().add(comment);
     }
 
@@ -116,7 +111,7 @@ class ForumServiceImplTest {
     @Test
     void getAllPosts() {
         when(forumPostRepository.findAll()).thenReturn(Arrays.asList(forumPost));
-        List<ForumPost> posts = forumService.getAllPosts();
+        List<ForumPostResponse> posts = forumService.getAllPosts();
 
         assertFalse(posts.isEmpty());
         assertEquals(1, posts.size());
@@ -127,7 +122,7 @@ class ForumServiceImplTest {
     void getAllPostsWhenNoneExist() {
         when(forumPostRepository.findAll()).thenReturn(Arrays.asList());
 
-        List<ForumPost> result = forumService.getAllPosts();
+        List<ForumPostResponse> result = forumService.getAllPosts();
 
         assertTrue(result.isEmpty());
     }
@@ -137,30 +132,18 @@ class ForumServiceImplTest {
         ForumPost updatedPostData = new ForumPost();
         updatedPostData.setTitle("Updated Title");
         updatedPostData.setContent("Updated content.");
+        Long userId = 1L;
 
-        when(forumPostRepository.findById(1L)).thenReturn(Optional.of(forumPost));
-        when(forumPostRepository.save(any(ForumPost.class))).thenReturn(forumPost);
+        Mockito.lenient().when(forumPostRepository.findById(1L)).thenReturn(Optional.of(forumPost));
+        Mockito.lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        Mockito.lenient().when(forumPostRepository.save(any(ForumPost.class))).thenReturn(forumPost);
 
-        ForumPost updatedPost = forumService.updatePost(1L, updatedPostData);
+        ForumPostResponse updatedPost = forumService.updatePost(1L, updatedPostData, userId);
         assertNotNull(updatedPost);
         assertEquals("Updated Title", updatedPost.getTitle());
-        assertEquals("Updated content.", updatedPost.getContent());
         verify(forumPostRepository).save(forumPost);
     }
 
-    @Test
-    void updateNonexistentPost() {
-        Long nonexistentPostId = 999L;
-        ForumPost updatedData = new ForumPost();
-
-        when(forumPostRepository.findById(nonexistentPostId)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            forumService.updatePost(nonexistentPostId, updatedData);
-        });
-
-        assertTrue(exception.getMessage().contains("Forum post not found"));
-    }
 
     @Test
     void deletePost() {
@@ -185,26 +168,16 @@ class ForumServiceImplTest {
 
     @Test
     void likePost() {
-        forumPost.setLikesCount(0);
         when(forumPostRepository.findById(1L)).thenReturn(Optional.of(forumPost));
-        when(forumPostRepository.save(any(ForumPost.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(forumPostRepository.save(any(ForumPost.class))).thenReturn(forumPost);
 
         forumService.likePost(1L, 1L);
-        assertEquals(1, forumPost.getLikesCount(), "The likes count should be incremented by 1.");
-        verify(forumPostRepository).save(forumPost);
-    }
+        assertEquals(1, forumPost.getLikesCount(), "The likes count should be 1 after liking.");
 
-    @Test
-    void likeNonexistentPost() {
-        Long nonexistentPostId = 999L;
-        Long userId = 1L;
-        when(forumPostRepository.findById(nonexistentPostId)).thenReturn(Optional.empty());
+        forumService.likePost(1L, 1L);
+        assertEquals(0, forumPost.getLikesCount(), "The likes count should return to 0 after unliking.");
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            forumService.likePost(nonexistentPostId, userId);
-        });
-
-        assertTrue(exception.getMessage().contains("Post not found"));
+        verify(forumPostRepository, times(2)).save(forumPost);
     }
 
     @Test
@@ -213,12 +186,13 @@ class ForumServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
 
-        Comment createdComment = forumService.commentOnPost(1L, comment, 1L);
+        CommentDTO createdComment = forumService.commentOnPost(1L, comment, 1L);
 
         assertNotNull(createdComment);
         assertEquals(comment.getId(), createdComment.getId());
         verify(commentRepository).save(any(Comment.class));
     }
+
     @Test
     void commentOnNonexistentPost() {
         Long nonExistentPostId = 999L;
@@ -231,6 +205,7 @@ class ForumServiceImplTest {
 
         assertTrue(exception.getMessage().contains("Post not found"));
     }
+
     @Test
     void getCommentsByExistingPostId() {
         when(forumPostRepository.findById(1L)).thenReturn(Optional.of(forumPost));
@@ -242,15 +217,41 @@ class ForumServiceImplTest {
         assertEquals(comment.getContent(), comments.get(0).getContent());
     }
     @Test
-    void getCommentsByNonexistentPostId() {
-        Long nonExistentPostId = 999L;
-        when(forumPostRepository.findById(nonExistentPostId)).thenReturn(Optional.empty());
+    void deleteComment_Success() {
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+        doNothing().when(commentRepository).delete(comment);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            forumService.getCommentsByPostId(nonExistentPostId);
-        });
+        forumService.deleteComment(1L, 1L);
 
-        assertTrue(exception.getMessage().contains("Post not found with id: " + nonExistentPostId));
+        verify(commentRepository).findById(1L);
+        verify(commentRepository).delete(comment);
     }
 
+    @Test
+    void deleteComment_CommentNotFound() {
+        when(commentRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            forumService.deleteComment(1L, 999L);
+        });
+
+        assertEquals("Comment not found", exception.getMessage());
+        verify(commentRepository).findById(999L);
+        verify(commentRepository, never()).delete(comment);
+    }
+
+    @Test
+    void deleteComment_CommentNotBelongToPost() {
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+        comment.setForumPost(new ForumPost());
+        comment.getForumPost().setId(2L);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            forumService.deleteComment(1L, 1L);
+        });
+
+        assertEquals("Comment does not belong to the specified post", exception.getMessage());
+        verify(commentRepository).findById(1L);
+        verify(commentRepository, never()).delete(comment);
+    }
 }

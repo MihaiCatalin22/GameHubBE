@@ -60,7 +60,7 @@ public class ReviewController {
     }
 
     @PutMapping("/{reviewId}")
-    @PreAuthorize("#review.userId == authentication.principal.userId")
+    @PreAuthorize("#review.user != null && #review.user.id == authentication.principal.id or hasAuthority('ADMINISTRATOR')")
     public ResponseEntity<Review> updateReview(@PathVariable Long reviewId, @RequestBody Review review) {
         Review updatedReview = reviewService.updateReview(reviewId, review);
         return ResponseEntity.ok(updatedReview);
