@@ -27,4 +27,6 @@ public class UserDTO {
     private List<String> role;
 
     private String jwt;
+
+    private String profilePicture;
 }

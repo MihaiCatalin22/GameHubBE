@@ -72,6 +72,14 @@ public class UserServiceImpl implements UserService {
                 }).orElseThrow(() -> new RuntimeException("User not found"));
     }
     @Override
+    public void updateUserProfilePicture(Long userId, String fileName) {
+        userRepository.findById(userId)
+                .map(user -> {
+                    user.setProfilePicture(fileName);
+                    return userRepository.save(user);
+                }).orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+    }
+    @Override
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }

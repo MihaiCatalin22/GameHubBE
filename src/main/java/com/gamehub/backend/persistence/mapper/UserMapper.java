@@ -22,6 +22,7 @@ public interface UserMapper {
                 .map(Enum::name)
                 .collect(Collectors.toList());
         dto.setRole(roles);
+        dto.setProfilePicture(user.getProfilePicture());
     }
 
     @Mapping(target = "reviews", ignore = true)

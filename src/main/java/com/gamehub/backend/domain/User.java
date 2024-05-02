@@ -21,6 +21,8 @@ public class User {
     private String username;
     private String email;
     private String passwordHash;
+    @Column(name = "profile_picture")
+    private String profilePicture;
 
     private String description;
     @ElementCollection(fetch = FetchType.EAGER)
@@ -31,9 +33,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "user-review")
     private List<Review> reviews = new ArrayList<>();
-
-
-
 }
 
 

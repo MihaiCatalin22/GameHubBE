@@ -9,6 +9,7 @@ public interface UserService {
     Optional<UserDTO> getUserById(Long id);
     List<UserDTO> getAllUsers();
     UserDTO updateUser(Long id, UserDTO userDTO);
+    void updateUserProfilePicture(Long id, String fileName);
     void deleteUser(Long id);
     Optional<UserDTO> login(UserDTO userDTO);
 }

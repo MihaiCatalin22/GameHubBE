@@ -46,12 +46,14 @@ class UserServiceImplTest {
         user.setUsername("testUser");
         user.setEmail("test@example.com");
         user.setPasswordHash("hashedPassword");
+        user.setProfilePicture("oldPicture.jpg");
 
         userDTO = new UserDTO();
         userDTO.setId(1L);
         userDTO.setUsername("testUser");
         userDTO.setEmail("test@example.com");
         userDTO.setPassword("password123");
+        userDTO.setProfilePicture("oldPicture.jpg");
 
         lenient().when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
         lenient().when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
@@ -165,6 +167,18 @@ class UserServiceImplTest {
 
         assertTrue(result.isEmpty());
         verify(passwordEncoder).matches("password123", "hashedPassword");
+    }
+
+    @Test
+    void updateUserProfilePicture_userNotFound_throwsException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            userService.updateUserProfilePicture(1L, "newPicture.jpg");
+        });
+
+        assertEquals("User not found with id: 1", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 }
 
