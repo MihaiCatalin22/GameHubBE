@@ -254,4 +254,17 @@ class ForumServiceImplTest {
         verify(commentRepository).findById(1L);
         verify(commentRepository, never()).delete(comment);
     }
+    @Test
+    void getPostsByUserId() {
+        Long userId = 1L;
+        when(forumPostRepository.findByAuthorId(userId)).thenReturn(Arrays.asList(forumPost));
+
+        List<ForumPostResponse> posts = forumService.getPostsByUserId(userId);
+
+        assertNotNull(posts);
+        assertFalse(posts.isEmpty());
+        assertEquals(1, posts.size());
+        assertEquals(forumPost.getId(), posts.get(0).getId());
+        verify(forumPostRepository).findByAuthorId(userId);
+    }
 }

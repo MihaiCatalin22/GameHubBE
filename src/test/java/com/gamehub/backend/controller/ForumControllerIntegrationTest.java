@@ -61,8 +61,6 @@ class ForumControllerIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
-    private PlatformTransactionManager transactionManager;
     private User testUser;
 
     @BeforeEach
@@ -281,28 +279,37 @@ class ForumControllerIntegrationTest {
 
         SecurityContextHolder.clearContext();
     }
+    @Test
+    void getPostsByUserIdTest() throws Exception {
+        User testUser = new User();
+        testUser.setUsername("testUser");
+        testUser.setPasswordHash(passwordEncoder.encode("securePass123"));
+        testUser = userRepository.save(testUser);
 
-//    @Test
-//    void getCommentsByPostIdTest() throws Exception {
-//        ForumPost post = new ForumPost();
-//        post.setTitle("Post to comment on");
-//        post.setContent("Some content here.");
-//        post.setAuthor(testUser);
-//        forumPostRepository.saveAndFlush(post);
-//
-//
-//        Comment comment = new Comment();
-//        comment.setContent("A good comment.");
-//        comment.setAuthor(testUser);
-//        comment.setForumPost(post);
-//        commentRepository.saveAndFlush(comment);
-//
-//
-//        mockMvc.perform(get("/forum/posts/" + post.getId() + "/comments")
-//                        .with(user("testUser").roles("USER")))
-//                .andDo(print())
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.size()", is(1)))
-//                .andExpect(jsonPath("$[0].content", is("A good comment.")));
-//    }
+        ForumPost post1 = new ForumPost();
+        post1.setTitle("User's First Post");
+        post1.setContent("Content of user's first post.");
+        post1.setAuthor(testUser);
+        forumPostRepository.save(post1);
+
+        ForumPost post2 = new ForumPost();
+        post2.setTitle("User's Second Post");
+        post2.setContent("Content of user's second post.");
+        post2.setAuthor(testUser);
+        forumPostRepository.save(post2);
+
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
+        CustomUserDetails userDetails = new CustomUserDetails(testUser.getId(), testUser.getUsername(), testUser.getPasswordHash(), authorities);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        mockMvc.perform(get("/forum/posts/user/" + testUser.getId())
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(2)))
+                .andExpect(jsonPath("$[0].title", is("User's First Post")))
+                .andExpect(jsonPath("$[1].title", is("User's Second Post")));
+
+        SecurityContextHolder.clearContext();
+    }
 }

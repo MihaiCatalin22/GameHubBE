@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class ForumServiceImpl implements ForumService {
@@ -89,7 +88,13 @@ public class ForumServiceImpl implements ForumService {
         Set<Comment> comments = forumPostRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found")).getComments();
         return comments.stream().map(this::convertToCommentDTO).toList();
     }
-
+    @Override
+    public List<ForumPostResponse> getPostsByUserId(Long userId) {
+        List<ForumPost> posts = forumPostRepository.findByAuthorId(userId);
+        return posts.stream()
+                .map(this::toForumPostResponse)
+                .toList();
+    }
     @Override
     public void deleteComment(Long postId, Long commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new RuntimeException("Comment not found"));

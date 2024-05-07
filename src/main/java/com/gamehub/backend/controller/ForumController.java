@@ -50,7 +50,15 @@ public class ForumController {
         List<ForumPostResponse> posts = forumService.getAllPosts();
         return new ResponseEntity<>(posts, HttpStatus.OK);
     }
-
+    @GetMapping("/posts/user/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<ForumPostResponse>> getPostsByUserId(@PathVariable Long userId) {
+        List<ForumPostResponse> posts = forumService.getPostsByUserId(userId);
+        if (posts.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(posts);
+    }
     @PutMapping("/posts/{id}")
     @PreAuthorize("hasRole('ADMINISTRATOR') or #post.author.id == principal.id")
     public ResponseEntity<ForumPostResponse> updatePost(@PathVariable Long id, @RequestBody ForumPost post, @AuthenticationPrincipal CustomUserDetails currentUser) {

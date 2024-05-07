@@ -1,6 +1,5 @@
 package com.gamehub.backend.controller;
 
-import com.gamehub.backend.domain.Review;
 import com.gamehub.backend.business.ReviewService;
 import com.gamehub.backend.dto.ReviewDTO;
 import org.springframework.beans.factory.annotation.Autowired;

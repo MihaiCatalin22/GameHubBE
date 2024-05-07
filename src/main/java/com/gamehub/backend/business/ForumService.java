@@ -19,4 +19,5 @@ public interface ForumService {
     CommentDTO commentOnPost(Long postId, Comment comment, Long userId);
     List<CommentDTO> getCommentsByPostId(Long postId);
     void deleteComment(Long postId, Long commentId);
+    List<ForumPostResponse> getPostsByUserId(Long userId);
 }
