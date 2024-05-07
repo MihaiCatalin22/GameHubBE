@@ -1,16 +1,16 @@
 package com.gamehub.backend.business;
 
-import com.gamehub.backend.domain.Review;
+import com.gamehub.backend.dto.ReviewDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ReviewService {
-    Review createReview(Review review, Long gameId, Long userId);
-    List<Review> getReviewsByGameId(Long gameId);
-    List<Review> getReviewsByUserId(Long userId);
-    Optional<Review> getReviewsById(Long id);
-    List<Review> getAllReviews();
-    Review updateReview(Long reviewId, Review reviewDetails);
+    ReviewDTO createReview(ReviewDTO reviewDto, Long gameId, Long userId);
+    List<ReviewDTO> getReviewsByGameId(Long gameId);
+    List<ReviewDTO> getReviewsByUserId(Long userId);
+    Optional<ReviewDTO> getReviewsById(Long id);
+    List<ReviewDTO> getAllReviews();
+    ReviewDTO updateReview(Long reviewId, ReviewDTO reviewDto);
     void deleteReview(Long reviewId);
 }

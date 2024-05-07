@@ -3,6 +3,7 @@ package com.gamehub.backend.business.impl;
 import com.gamehub.backend.domain.Review;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.domain.Game;
+import com.gamehub.backend.dto.ReviewDTO;
 import com.gamehub.backend.persistence.ReviewRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import com.gamehub.backend.persistence.GameRepository;
@@ -24,45 +25,74 @@ public class ReviewServiceImpl implements ReviewService {
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
     }
+    private ReviewDTO convertToDTO(Review review) {
+        ReviewDTO dto = new ReviewDTO();
+        dto.setId(review.getId());
+        dto.setRating(review.getRating());
+        dto.setContent(review.getContent());
+        dto.setCreationDate(review.getCreationDate());
+        if (review.getGame() != null) {
+            dto.setGameTitle(review.getGame().getTitle());
+            dto.setGameId(review.getGame().getId());
+        }
+        return dto;
+    }
+    private Review convertToEntity(ReviewDTO reviewDto, Long gameId, Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found."));
+        Game game = gameRepository.findById(gameId).orElseThrow(() -> new IllegalArgumentException("Game not found."));
 
-    @Override
-    public Review createReview(Review review, Long userId, Long gameId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found."));
-
+        Review review = new Review();
+        review.setRating(reviewDto.getRating());
+        review.setContent(reviewDto.getContent());
         review.setUser(user);
         review.setGame(game);
-
-        return reviewRepository.save(review);
+        return review;
+    }
+    @Override
+    public ReviewDTO createReview(ReviewDTO reviewDto, Long gameId, Long userId) {
+        Review review = convertToEntity(reviewDto, gameId, userId);
+        review = reviewRepository.save(review);
+        return convertToDTO(review);
     }
 
     @Override
-    public List<Review> getAllReviews() {
-        return reviewRepository.findAll();
-    }
-    @Override
-    public Optional<Review> getReviewsById(Long id) {
-        return reviewRepository.findById(id);
-    }
-    @Override
-    public List<Review> getReviewsByGameId(Long gameId) {
-        return reviewRepository.findByGameId(gameId);
+    public List<ReviewDTO> getAllReviews() {
+        return reviewRepository.findAll().stream().map(this::convertToDTO).toList();
     }
 
     @Override
-    public List<Review> getReviewsByUserId(Long userId) {
-        return reviewRepository.findByUserId(userId);
+    public Optional<ReviewDTO> getReviewsById(Long id) {
+        return reviewRepository.findById(id).map(this::convertToDTO);
     }
 
     @Override
-    public Review updateReview(Long reviewId, Review review) {
+    public List<ReviewDTO> getReviewsByGameId(Long gameId) {
+        return reviewRepository.findByGameId(gameId).stream().map(this::convertToDTO).toList();
+    }
+
+    @Override
+    public List<ReviewDTO> getReviewsByUserId(Long userId) {
+        return reviewRepository.findByUserId(userId).stream()
+                .map(review -> {
+                    ReviewDTO dto = new ReviewDTO();
+                    dto.setId(review.getId());
+                    dto.setContent(review.getContent());
+                    dto.setRating(review.getRating());
+                    dto.setGameId(review.getGame() != null ? review.getGame().getId() : null);
+                    dto.setGameTitle(review.getGame() != null ? review.getGame().getTitle() : "No game associated");
+                    return dto;
+                }).toList();
+    }
+
+    @Override
+    public ReviewDTO updateReview(Long reviewId, ReviewDTO reviewDto) {
         return reviewRepository.findById(reviewId)
                 .map(existingReview -> {
-                    existingReview.setRating(review.getRating());
-                    existingReview.setComment(review.getComment());
-                    return reviewRepository.save(existingReview);
+                    existingReview.setRating(reviewDto.getRating());
+                    existingReview.setComment(reviewDto.getComment());
+                    existingReview.setContent(reviewDto.getContent());
+                    reviewRepository.save(existingReview);
+                    return convertToDTO(existingReview);
                 })
                 .orElseThrow(() -> new RuntimeException("Review not found with id: " + reviewId));
     }

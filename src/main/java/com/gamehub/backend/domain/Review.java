@@ -24,7 +24,7 @@ public class Review {
     @JsonBackReference(value = "user-review")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "game_id")
     @JsonBackReference(value = "game-review")
     private Game game;

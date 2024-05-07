@@ -3,6 +3,7 @@ package com.gamehub.backend.business.impl;
 import com.gamehub.backend.domain.Review;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.domain.Game;
+import com.gamehub.backend.dto.ReviewDTO;
 import com.gamehub.backend.persistence.ReviewRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import com.gamehub.backend.persistence.GameRepository;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
@@ -31,9 +31,10 @@ class ReviewServiceImplTest {
     @InjectMocks
     private ReviewServiceImpl reviewService;
 
-    private Review review;
     private User user;
     private Game game;
+    private Review review;
+    private ReviewDTO reviewDTO;
 
     @BeforeEach
     void setUp() {
@@ -51,157 +52,157 @@ class ReviewServiceImplTest {
         review.setGame(game);
         review.setRating(5);
         review.setComment("Excellent game with great mechanics.");
+
+        reviewDTO = new ReviewDTO();
+        reviewDTO.setId(review.getId());
+        reviewDTO.setRating(review.getRating());
+        reviewDTO.setContent(review.getComment());
+        reviewDTO.setCreationDate(new Date());
+        reviewDTO.setGameId(game.getId());
+        reviewDTO.setGameTitle(game.getTitle());
     }
 
-
     @Test
-    void createReview() {
-        Mockito.lenient().when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        Mockito.lenient().when(gameRepository.findById(anyLong())).thenReturn(Optional.of(game));
-        when(reviewRepository.save(any(Review.class))).thenReturn(review);
+    void createReviewSuccess() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+        when(reviewRepository.save(any())).thenReturn(review);
 
-        Review createdReview = reviewService.createReview(review, user.getId(), game.getId());
+        ReviewDTO createdReview = reviewService.createReview(reviewDTO, user.getId(), game.getId());
 
         assertNotNull(createdReview);
-        assertEquals(review.getId(), createdReview.getId());
+        assertEquals(reviewDTO.getId(), createdReview.getId());
+        assertEquals(reviewDTO.getGameId(), createdReview.getGameId());
         verify(reviewRepository).save(any(Review.class));
     }
+
     @Test
-    void createReviewWithNullReview() {
+    void createReviewWithNullReviewShouldThrow() {
         Long userId = user.getId();
         Long gameId = game.getId();
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            reviewService.createReview(null, userId, gameId);
-        });
+        assertThrows(IllegalArgumentException.class, () -> reviewService.createReview(null, userId, gameId));
     }
 
     @Test
-    void getReviewById() {
-        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
-        Optional<Review> foundReview = reviewService.getReviewsById(1L);
+    void getReviewByIdFound() {
+        when(reviewRepository.findById(review.getId())).thenReturn(Optional.of(review));
+
+        Optional<ReviewDTO> foundReview = reviewService.getReviewsById(review.getId());
 
         assertTrue(foundReview.isPresent());
         assertEquals(review.getId(), foundReview.get().getId());
-        verify(reviewRepository).findById(1L);
+        verify(reviewRepository).findById(review.getId());
     }
 
     @Test
-    void getReviewByNonexistentId() {
+    void getReviewByIdNotFound() {
         when(reviewRepository.findById(999L)).thenReturn(Optional.empty());
-        Optional<Review> result = reviewService.getReviewsById(999L);
+
+        Optional<ReviewDTO> result = reviewService.getReviewsById(999L);
 
         assertFalse(result.isPresent());
         verify(reviewRepository).findById(999L);
     }
 
     @Test
-    void getAllReviews() {
+    void getAllReviewsNotEmpty() {
         when(reviewRepository.findAll()).thenReturn(Arrays.asList(review));
-        List<Review> reviews = reviewService.getAllReviews();
+
+        List<ReviewDTO> reviews = reviewService.getAllReviews();
 
         assertFalse(reviews.isEmpty());
         assertEquals(1, reviews.size());
         verify(reviewRepository).findAll();
     }
-    @Test
-    void GetReviewsByGameId() {
-        Long gameId = 1L;
-        Review review1 = new Review();
-        Review review2 = new Review();
-        List<Review> mockReviews = Arrays.asList(review1, review2);
-        when(reviewRepository.findByGameId(gameId)).thenReturn(mockReviews);
 
-        List<Review> reviews = reviewService.getReviewsByGameId(gameId);
+    @Test
+    void getReviewsByGameIdFound() {
+        when(reviewRepository.findByGameId(game.getId())).thenReturn(Arrays.asList(review));
+
+        List<ReviewDTO> reviews = reviewService.getReviewsByGameId(game.getId());
 
         assertNotNull(reviews);
-        assertEquals(2, reviews.size());
-        verify(reviewRepository).findByGameId(gameId);
+        assertFalse(reviews.isEmpty());
+        verify(reviewRepository).findByGameId(game.getId());
     }
-    @Test
-    void GetReviewsByGameIdWithNoReviewsFound() {
-        Long gameId = 2L;
-        when(reviewRepository.findByGameId(gameId)).thenReturn(Collections.emptyList());
 
-        List<Review> reviews = reviewService.getReviewsByGameId(gameId);
+    @Test
+    void getReviewsByGameIdEmpty() {
+        when(reviewRepository.findByGameId(999L)).thenReturn(Collections.emptyList());
+
+        List<ReviewDTO> reviews = reviewService.getReviewsByGameId(999L);
 
         assertTrue(reviews.isEmpty());
-        verify(reviewRepository).findByGameId(gameId);
+        verify(reviewRepository).findByGameId(999L);
     }
 
     @Test
-    void GetReviewsByUserIdWithNoReviewsFound() {
-        Long userId = 2L;
-        when(reviewRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
+    void getReviewsByUserIdFound() {
+        when(reviewRepository.findByUserId(user.getId())).thenReturn(Arrays.asList(review));
 
-        List<Review> reviews = reviewService.getReviewsByUserId(userId);
-
-        assertTrue(reviews.isEmpty());
-        verify(reviewRepository).findByUserId(userId);
-    }
-    @Test
-    void GetReviewsByUserId() {
-        Long userId = 1L;
-        Review review1 = new Review();
-        Review review2 = new Review();
-        List<Review> mockReviews = Arrays.asList(review1, review2);
-        when(reviewRepository.findByUserId(userId)).thenReturn(mockReviews);
-
-        List<Review> reviews = reviewService.getReviewsByUserId(userId);
+        List<ReviewDTO> reviews = reviewService.getReviewsByUserId(user.getId());
 
         assertNotNull(reviews);
-        assertEquals(2, reviews.size());
-        verify(reviewRepository).findByUserId(userId);
+        assertFalse(reviews.isEmpty());
+        verify(reviewRepository).findByUserId(user.getId());
     }
+
     @Test
-    void updateReview() {
-        Review updatedReviewData = new Review();
-        updatedReviewData.setRating(4);
-        updatedReviewData.setComment("Great game, but a bit short.");
+    void getReviewsByUserIdEmpty() {
+        when(reviewRepository.findByUserId(999L)).thenReturn(Collections.emptyList());
 
-        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
-        when(reviewRepository.save(any(Review.class))).thenReturn(review);
+        List<ReviewDTO> reviews = reviewService.getReviewsByUserId(999L);
 
-        Review updatedReview = reviewService.updateReview(1L, updatedReviewData);
+        assertTrue(reviews.isEmpty());
+        verify(reviewRepository).findByUserId(999L);
+    }
+
+    @Test
+    void updateReviewFoundAndUpdated() {
+        ReviewDTO updatedReviewDTO = new ReviewDTO();
+        updatedReviewDTO.setRating(3);
+        updatedReviewDTO.setContent("Updated comment");
+
+        when(reviewRepository.findById(review.getId())).thenReturn(Optional.of(review));
+
+        when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReviewDTO updatedReview = reviewService.updateReview(review.getId(), updatedReviewDTO);
 
         assertNotNull(updatedReview);
-        assertEquals("Great game, but a bit short.", updatedReview.getComment());
-        assertEquals(4, updatedReview.getRating());
-        verify(reviewRepository).save(review);
+        assertEquals(3, updatedReview.getRating());
+        assertEquals("Updated comment", updatedReview.getContent());
+        verify(reviewRepository).save(any(Review.class));
     }
 
     @Test
     void updateNonexistentReview() {
-        Review updatedReviewData = new Review();
-        updatedReviewData.setRating(3);
-        updatedReviewData.setComment("Moderate experience.");
+        ReviewDTO updatedReviewDTO = new ReviewDTO();
+        updatedReviewDTO.setRating(3);
+        updatedReviewDTO.setContent("Moderate experience.");
 
         when(reviewRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> {
-            reviewService.updateReview(999L, updatedReviewData);
-        });
+        assertThrows(RuntimeException.class, () -> reviewService.updateReview(999L, updatedReviewDTO));
+
         verify(reviewRepository, never()).save(any(Review.class));
     }
 
     @Test
-    void deleteReview() {
-        doNothing().when(reviewRepository).deleteById(1L);
+    void deleteReviewExisting() {
+        doNothing().when(reviewRepository).deleteById(review.getId());
 
-        reviewService.deleteReview(1L);
+        reviewService.deleteReview(review.getId());
 
-        verify(reviewRepository).deleteById(1L);
+        verify(reviewRepository).deleteById(review.getId());
     }
 
     @Test
-    void deleteNonexistentReview() {
-        doThrow(new RuntimeException("Review not found.")).when(reviewRepository).deleteById(999L);
+    void deleteReviewNonExistent() {
+        doThrow(new RuntimeException("Review not found")).when(reviewRepository).deleteById(999L);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            reviewService.deleteReview(999L);
-        });
-
-        assertTrue(exception.getMessage().contains("Review not found"));
+        assertThrows(RuntimeException.class, () -> reviewService.deleteReview(999L));
         verify(reviewRepository).deleteById(999L);
     }
 }

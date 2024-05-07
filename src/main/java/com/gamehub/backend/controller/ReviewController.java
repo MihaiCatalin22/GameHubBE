@@ -2,6 +2,7 @@ package com.gamehub.backend.controller;
 
 import com.gamehub.backend.domain.Review;
 import com.gamehub.backend.business.ReviewService;
+import com.gamehub.backend.dto.ReviewDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,46 +24,49 @@ public class ReviewController {
 
     @PostMapping("/games/{gameId}/review")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Review> addReviewToGame(@PathVariable Long gameId, @RequestBody Review review, @RequestParam Long userId) {
+    public ResponseEntity<ReviewDTO> addReviewToGame(@PathVariable Long gameId, @RequestBody ReviewDTO reviewDto, @RequestParam Long userId) {
         try {
-            Review createdReview = reviewService.createReview(review, userId, gameId);
+            ReviewDTO createdReview = reviewService.createReview(reviewDto, gameId, userId);
             return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            Review errorReview = new Review();
-            errorReview.setComment("Error: " + e.getMessage());
+            ReviewDTO errorReview = new ReviewDTO();
+            errorReview.setContent("Error: " + e.getMessage());
             return ResponseEntity.badRequest().body(errorReview);
         }
     }
 
-
     @GetMapping
-    public ResponseEntity<List<Review>> getAllReviews() {
-        List<Review> reviews = reviewService.getAllReviews();
+    public ResponseEntity<List<ReviewDTO>> getAllReviews() {
+        List<ReviewDTO> reviews = reviewService.getAllReviews();
         return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Review> getReviewById(@PathVariable Long id) {
+    public ResponseEntity<ReviewDTO> getReviewById(@PathVariable Long id) {
         return reviewService.getReviewsById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @GetMapping("/games/{gameId}")
-    public ResponseEntity<List<Review>> getReviewsByGameId(@PathVariable Long gameId) {
-        List<Review> reviews = reviewService.getReviewsByGameId(gameId);
+    public ResponseEntity<List<ReviewDTO>> getReviewsByGameId(@PathVariable Long gameId) {
+        List<ReviewDTO> reviews = reviewService.getReviewsByGameId(gameId);
         return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Review>> getReviewsByUserId(@PathVariable Long userId) {
-        List<Review> reviews = reviewService.getReviewsByUserId(userId);
+    public ResponseEntity<List<ReviewDTO>> getReviewsByUserId(@PathVariable Long userId) {
+        List<ReviewDTO> reviews = reviewService.getReviewsByUserId(userId);
+        if (reviews.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         return ResponseEntity.ok(reviews);
     }
 
     @PutMapping("/{reviewId}")
-    @PreAuthorize("#review.user != null && #review.user.id == authentication.principal.id or hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<Review> updateReview(@PathVariable Long reviewId, @RequestBody Review review) {
-        Review updatedReview = reviewService.updateReview(reviewId, review);
+    @PreAuthorize("authentication.principal.id == #reviewDto.author.id or hasAuthority('ADMINISTRATOR')")
+    public ResponseEntity<ReviewDTO> updateReview(@PathVariable Long reviewId, @RequestBody ReviewDTO reviewDto) {
+        ReviewDTO updatedReview = reviewService.updateReview(reviewId, reviewDto);
         return ResponseEntity.ok(updatedReview);
     }
 
