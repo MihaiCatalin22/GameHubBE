@@ -1,5 +1,6 @@
 package com.gamehub.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import java.util.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,7 +36,13 @@ public class Game {
 
     private String developer;
 
+    private Double price;
+
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
     @JsonManagedReference (value = "game-review")
     private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "game-purchase")
+    private List<Purchase> purchases = new ArrayList<>();
 }

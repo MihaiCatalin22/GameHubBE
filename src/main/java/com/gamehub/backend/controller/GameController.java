@@ -33,7 +33,10 @@ public class GameController {
                 .map(game -> ResponseEntity.ok().body(game))
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    @GetMapping("/user/{userId}")
+    public List<Game> getGamesByUserId(@PathVariable Long userId) {
+        return gameService.getGamesByUserId(userId);
+    }
     @GetMapping
     public ResponseEntity<List<Game>> getAllGames() {
         List<Game> games = gameService.getAllGames();

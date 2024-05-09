@@ -35,7 +35,7 @@ class GameServiceImplTest {
         game.setGenres(new HashSet<>(Collections.singletonList(Genre.MMO)));
         game.setReleaseDate(new Date());
         game.setDeveloper("Test Developer");
-
+        game.setPrice(29.99);
 
     }
 
@@ -98,6 +98,7 @@ class GameServiceImplTest {
         Game updatedGameData = new Game();
         updatedGameData.setTitle("Updated Title");
         updatedGameData.setDescription("Updated Description");
+        updatedGameData.setPrice(19.99);
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
@@ -107,6 +108,7 @@ class GameServiceImplTest {
         assertNotNull(updatedGame);
         assertEquals("Updated Title", updatedGame.getTitle());
         assertEquals("Updated Description", updatedGame.getDescription());
+        assertEquals(19.99, updatedGame.getPrice());
         verify(gameRepository).save(game);
     }
     @Test

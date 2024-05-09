@@ -24,7 +24,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/**","/users/login", "/register").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/categories/**", "/genres/**").permitAll()
-                        .requestMatchers("/games/**", "/reviews/**", "/forum/**").authenticated()
+                        .requestMatchers("/games/**", "/reviews/**", "/forum/**", "/purchases/**").authenticated()
                         .requestMatchers("/events/**").hasAnyAuthority("USER", "ADMINISTRATOR", "COMMUNITY_MANAGER")
                         .requestMatchers("/admin/**").hasAuthority("ADMINISTRATOR")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll())

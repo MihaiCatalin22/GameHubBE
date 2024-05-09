@@ -64,7 +64,7 @@ class GameControllerIntegrationTest {
         sampleGame.setGenres(new HashSet<>(Arrays.asList(Genre.ACTION, Genre.RPG)));
         sampleGame.setReleaseDate(new Date());
         sampleGame.setDeveloper("FromSoftware");
-
+        sampleGame.setPrice(19.99);
         given(gameRepository.findById(1L)).willReturn(Optional.of(sampleGame));
         given(gameRepository.save(any(Game.class))).willReturn(sampleGame);
         given(gameRepository.findAll()).willReturn(Arrays.asList(sampleGame));
@@ -141,11 +141,14 @@ class GameControllerIntegrationTest {
 
         Game updatedGame = new Game();
         updatedGame.setTitle("Elden Ring Updated");
+        updatedGame.setPrice(49.99);
         mockMvc.perform(put("/games/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedGame)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Elden Ring Updated"));
+                .andExpect(jsonPath("$.title").value("Elden Ring Updated"))
+                .andExpect(jsonPath("$.price").value(49.99));
+
     }
 
     @Test
