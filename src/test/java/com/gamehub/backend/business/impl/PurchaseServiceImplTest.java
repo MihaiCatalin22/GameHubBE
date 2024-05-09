@@ -3,6 +3,7 @@ package com.gamehub.backend.business.impl;
 import com.gamehub.backend.domain.Game;
 import com.gamehub.backend.domain.Purchase;
 import com.gamehub.backend.domain.User;
+import com.gamehub.backend.dto.PurchaseDTO;
 import com.gamehub.backend.persistence.GameRepository;
 import com.gamehub.backend.persistence.PurchaseRepository;
 import com.gamehub.backend.persistence.UserRepository;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
-public class PurchaseServiceImplTest {
+class PurchaseServiceImplTest {
     @Mock
     private PurchaseRepository purchaseRepository;
 
@@ -133,7 +134,7 @@ public class PurchaseServiceImplTest {
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         when(purchaseRepository.findByUserIdAndPurchaseDateAfter(1L, fromDate)).thenReturn(user.getPurchases());
 
-        List<Purchase> purchases = purchaseService.getPurchases(1L, fromDate, null, null);
+        List<PurchaseDTO> purchases = purchaseService.getPurchases(1L, fromDate, null, null);
 
         assertNotNull(purchases);
         assertFalse(purchases.isEmpty());
@@ -147,7 +148,7 @@ public class PurchaseServiceImplTest {
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountGreaterThanEqual(1L, fromDate, 10.0))
                 .thenReturn(user.getPurchases());
 
-        List<Purchase> purchases = purchaseService.getPurchases(1L, fromDate, 10.0, null);
+        List<PurchaseDTO> purchases = purchaseService.getPurchases(1L, fromDate, 10.0, null);
 
         assertNotNull(purchases);
         assertFalse(purchases.isEmpty());
@@ -161,7 +162,7 @@ public class PurchaseServiceImplTest {
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountLessThan(1L, fromDate, 30.0))
                 .thenReturn(user.getPurchases());
 
-        List<Purchase> purchases = purchaseService.getPurchases(1L, fromDate, null, 30.0);
+        List<PurchaseDTO> purchases = purchaseService.getPurchases(1L, fromDate, null, 30.0);
 
         assertNotNull(purchases);
         assertFalse(purchases.isEmpty());

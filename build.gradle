@@ -16,7 +16,7 @@ sonar {
 		property "sonar.projectKey", "Gamehub"
 		property "sonar.organization", "myOrganization"
 		property "sonar.host.url", "http://localhost:9000"
-		property "sonar.token", "sqp_91c2df19c173b47a208679c9e3b4baa9990b1a61"
+		property "sonar.token", "sqp_bc2999b32985799b2f675786b7b077a74e6c6677"
 		property "sonar.coverage.exclusions", "**/domain/**, **/configuration/**, **/dto/**, **/controller/**, **/BackendApplication.java, **/business/impl/CustomUserDetailsService.java, **/persistence/mapper/UserMapper.java, **/business/impl/FileStorageService.java"
 		property "sonar.qualitygate.wait", true
 		property "sonar.gradle.skipCompile", "true"

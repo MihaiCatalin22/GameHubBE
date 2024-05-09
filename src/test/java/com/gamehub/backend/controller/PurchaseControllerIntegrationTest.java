@@ -6,13 +6,13 @@ import com.gamehub.backend.domain.Game;
 import com.gamehub.backend.domain.Genre;
 import com.gamehub.backend.domain.Purchase;
 import com.gamehub.backend.domain.User;
+import com.gamehub.backend.dto.PurchaseDTO;
 import com.gamehub.backend.persistence.GameRepository;
 import com.gamehub.backend.persistence.PurchaseRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +31,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -129,7 +128,7 @@ class PurchaseControllerIntegrationTest {
         mockMvc.perform(post("/purchases/{userId}/game/{gameId}", 1L, 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.game.title").value("Elden Ring"))
+                .andExpect(jsonPath("$.gameTitle").value("Elden Ring"))
                 .andExpect(jsonPath("$.amount").value(59.99));
     }
 
@@ -139,23 +138,19 @@ class PurchaseControllerIntegrationTest {
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
 
-        Purchase purchase = new Purchase();
-        purchase.setId(1L);
-        purchase.setUser(new User());
-        purchase.setGame(new Game());
-        purchase.getUser().setId(1L);
-        purchase.getUser().setUsername("username");
-        purchase.getGame().setId(1L);
-        purchase.getGame().setTitle("Elden Ring");
-        purchase.setAmount(59.99);
-        purchase.setPurchaseDate(fromDate);
+        PurchaseDTO purchaseDTO = new PurchaseDTO(
+                1L,
+                "Elden Ring",
+                59.99,
+                fromDate
+        );
 
-        when(purchaseRepository.findByUserIdAndPurchaseDateAfter(1L, fromDate)).thenReturn(List.of(purchase));
+        when(purchaseRepository.findByUserIdAndPurchaseDateAfter(1L, fromDate)).thenReturn(List.of(samplePurchase));
 
         mockMvc.perform(get("/purchases/{userId}", 1L)
                         .param("fromDate", fromDateFormatted))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].game.title").value("Elden Ring"))
+                .andExpect(jsonPath("$[0].gameTitle").value("Elden Ring"))
                 .andExpect(jsonPath("$[0].amount").value(59.99));
     }
 
@@ -165,25 +160,21 @@ class PurchaseControllerIntegrationTest {
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
 
-        Purchase purchase = new Purchase();
-        purchase.setId(1L);
-        purchase.setUser(new User());
-        purchase.setGame(new Game());
-        purchase.getUser().setId(1L);
-        purchase.getUser().setUsername("username");
-        purchase.getGame().setId(1L);
-        purchase.getGame().setTitle("Elden Ring");
-        purchase.setAmount(59.99);
-        purchase.setPurchaseDate(fromDate);
+        PurchaseDTO purchaseDTO = new PurchaseDTO(
+                1L,
+                "Elden Ring",
+                59.99,
+                fromDate
+        );
 
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountGreaterThanEqual(1L, fromDate, 10.0))
-                .thenReturn(List.of(purchase));
+                .thenReturn(List.of(samplePurchase));
 
         mockMvc.perform(get("/purchases/{userId}", 1L)
                         .param("fromDate", fromDateFormatted)
                         .param("minAmount", "10.0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].game.title").value("Elden Ring"))
+                .andExpect(jsonPath("$[0].gameTitle").value("Elden Ring"))
                 .andExpect(jsonPath("$[0].amount").value(59.99));
     }
 
@@ -193,25 +184,21 @@ class PurchaseControllerIntegrationTest {
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
 
-        Purchase purchase = new Purchase();
-        purchase.setId(1L);
-        purchase.setUser(new User());
-        purchase.setGame(new Game());
-        purchase.getUser().setId(1L);
-        purchase.getUser().setUsername("username");
-        purchase.getGame().setId(1L);
-        purchase.getGame().setTitle("Elden Ring");
-        purchase.setAmount(59.99);
-        purchase.setPurchaseDate(fromDate);
+        PurchaseDTO purchaseDTO = new PurchaseDTO(
+                1L,
+                "Elden Ring",
+                59.99,
+                fromDate
+        );
 
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountLessThan(1L, fromDate, 100.0))
-                .thenReturn(List.of(purchase));
+                .thenReturn(List.of(samplePurchase));
 
         mockMvc.perform(get("/purchases/{userId}", 1L)
                         .param("fromDate", fromDateFormatted)
                         .param("maxAmount", "100.0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].game.title").value("Elden Ring"))
+                .andExpect(jsonPath("$[0].gameTitle").value("Elden Ring"))
                 .andExpect(jsonPath("$[0].amount").value(59.99));
     }
 
@@ -221,26 +208,22 @@ class PurchaseControllerIntegrationTest {
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
 
-        Purchase purchase = new Purchase();
-        purchase.setId(1L);
-        purchase.setUser(new User());
-        purchase.setGame(new Game());
-        purchase.getUser().setId(1L);
-        purchase.getUser().setUsername("username");
-        purchase.getGame().setId(1L);
-        purchase.getGame().setTitle("Elden Ring");
-        purchase.setAmount(59.99);
-        purchase.setPurchaseDate(fromDate);
+        PurchaseDTO purchaseDTO = new PurchaseDTO(
+                1L,
+                "Elden Ring",
+                59.99,
+                fromDate
+        );
 
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountBetween(1L, fromDate, 10.0, 100.0))
-                .thenReturn(List.of(purchase));
+                .thenReturn(List.of(samplePurchase));
 
         mockMvc.perform(get("/purchases/{userId}", 1L)
                         .param("fromDate", fromDateFormatted)
                         .param("minAmount", "10.0")
                         .param("maxAmount", "100.0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].game.title").value("Elden Ring"))
+                .andExpect(jsonPath("$[0].gameTitle").value("Elden Ring"))
                 .andExpect(jsonPath("$[0].amount").value(59.99));
     }
 }

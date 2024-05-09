@@ -47,7 +47,7 @@ public class EventServiceImpl implements EventService {
             event.setStartDate(eventDetails.getStartDate());
             event.setEndDate(eventDetails.getEndDate());
             return eventRepository.save(event);
-        }).orElseThrow(() -> new RuntimeException("Event not found with id " + id));
+        }).orElseThrow(() -> new RuntimeException("Event with id " + id + " failed to update"));
     }
 
     @Override

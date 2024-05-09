@@ -55,7 +55,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public List<PurchaseDTO> getPurchases(Long userId, Date fromDate, Double minAmount, Double maxAmount) {
-        System.out.printf("Filtering Purchases: userId=%d, fromDate=%s, minAmount=%s, maxAmount=%s%n", userId, fromDate, minAmount, maxAmount);
 
         List<Purchase> purchases;
         if (minAmount != null && maxAmount != null) {
@@ -68,7 +67,6 @@ public class PurchaseServiceImpl implements PurchaseService {
             purchases = purchaseRepository.findByUserIdAndPurchaseDateAfter(userId, fromDate);
         }
 
-        System.out.printf("Found %d purchases.%n", purchases.size());
 
         return purchases.stream()
                 .map(purchase -> new PurchaseDTO(

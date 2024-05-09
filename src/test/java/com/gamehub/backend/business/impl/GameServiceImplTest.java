@@ -2,7 +2,11 @@ package com.gamehub.backend.business.impl;
 
 import com.gamehub.backend.domain.Game;
 import com.gamehub.backend.domain.Genre;
+import com.gamehub.backend.domain.Purchase;
+import com.gamehub.backend.domain.User;
 import com.gamehub.backend.persistence.GameRepository;
+import com.gamehub.backend.persistence.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,12 +24,14 @@ class GameServiceImplTest {
 
     @Mock
     private GameRepository gameRepository;
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private GameServiceImpl gameService;
 
     private Game game;
-
+    private User user;
     @BeforeEach
     void setUp() {
         game = new Game();
@@ -37,6 +43,12 @@ class GameServiceImplTest {
         game.setDeveloper("Test Developer");
         game.setPrice(29.99);
 
+        user = new User();
+        user.setId(1L);
+        user.setUsername("Test User");
+        Purchase purchase = new Purchase();
+        purchase.setGame(game);
+        user.setPurchases(Collections.singletonList(purchase));
     }
 
     @Test
@@ -50,12 +62,30 @@ class GameServiceImplTest {
     }
     @Test
     void createGameWithInvalidData() {
-        Game invalidGame = new Game();
-        invalidGame.setTitle(null);
+        Game nullTitleGame = new Game();
+        nullTitleGame.setTitle(null);
 
-        assertThrows(RuntimeException.class, () -> {
-            gameService.createGame(invalidGame);
+        IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(nullTitleGame);
         });
+        assertEquals("Game title cannot be empty", exception1.getMessage());
+
+        Game emptyTitleGame = new Game();
+        emptyTitleGame.setTitle("");
+
+        IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(emptyTitleGame);
+        });
+        assertEquals("Game title cannot be empty", exception2.getMessage());
+
+        Game whitespaceTitleGame = new Game();
+        whitespaceTitleGame.setTitle("   ");
+
+        IllegalArgumentException exception3 = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(whitespaceTitleGame);
+        });
+        assertEquals("Game title cannot be empty", exception3.getMessage());
+
         verify(gameRepository, never()).save(any(Game.class));
     }
 
@@ -92,6 +122,31 @@ class GameServiceImplTest {
         List<Game> games = gameService.getAllGames();
         assertTrue(games.isEmpty());
         verify(gameRepository).findAll();
+    }
+    @Test
+    void getGamesByUserId() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        List<Game> games = gameService.getGamesByUserId(1L);
+
+        assertNotNull(games);
+        assertFalse(games.isEmpty());
+        assertEquals(1, games.size());
+        assertEquals(game.getId(), games.get(0).getId());
+        verify(userRepository).findById(1L);
+    }
+
+    @Test
+    void getGamesByUserIdWithNonexistentUser() {
+        Long nonexistentUserId = 999L;
+        when(userRepository.findById(nonexistentUserId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            gameService.getGamesByUserId(nonexistentUserId);
+        });
+
+        assertEquals("User not found with id 999", exception.getMessage());
+        verify(userRepository).findById(nonexistentUserId);
     }
     @Test
     void updateGame() {

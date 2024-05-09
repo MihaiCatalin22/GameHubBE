@@ -3,11 +3,9 @@ package com.gamehub.backend.persistence.mapper;
 import com.gamehub.backend.domain.Role;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.dto.UserDTO;
-import org.aspectj.lang.annotation.After;
 import org.mapstruct.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
@@ -20,7 +18,7 @@ public interface UserMapper {
         List<String> roles = user.getRoles()
                 .stream()
                 .map(Enum::name)
-                .collect(Collectors.toList());
+                .toList();
         dto.setRole(roles);
         dto.setProfilePicture(user.getProfilePicture());
     }

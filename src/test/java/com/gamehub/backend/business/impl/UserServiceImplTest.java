@@ -1,5 +1,6 @@
 package com.gamehub.backend.business.impl;
 
+import com.gamehub.backend.domain.Role;
 import com.gamehub.backend.dto.UserDTO;
 import com.gamehub.backend.configuration.security.token.JwtUtil;
 import com.gamehub.backend.domain.User;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +49,7 @@ class UserServiceImplTest {
         user.setEmail("test@example.com");
         user.setPasswordHash("hashedPassword");
         user.setProfilePicture("oldPicture.jpg");
+        user.setRoles(Collections.singletonList(Role.USER));
 
         userDTO = new UserDTO();
         userDTO.setId(1L);
@@ -54,6 +57,7 @@ class UserServiceImplTest {
         userDTO.setEmail("test@example.com");
         userDTO.setPassword("password123");
         userDTO.setProfilePicture("oldPicture.jpg");
+        userDTO.setRole(Collections.singletonList("USER"));
 
         lenient().when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
         lenient().when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
@@ -66,6 +70,7 @@ class UserServiceImplTest {
             dto.setUsername(model.getUsername());
             dto.setEmail(model.getEmail());
             dto.setJwt(jwtUtil.generateToken(model.getUsername()));
+            dto.setRole(model.getRoles().stream().map(Role::name).toList());
             return dto;
         });
 
@@ -79,11 +84,13 @@ class UserServiceImplTest {
             return model;
         });
     }
+
     @BeforeEach
     void resetMocks() {
         Mockito.reset(jwtUtil, userRepository);
         when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
     }
+
     @Test
     void createUser() {
         when(userRepository.save(any(User.class))).thenReturn(user);
@@ -92,6 +99,7 @@ class UserServiceImplTest {
         verify(userRepository).save(any(User.class));
         assertEquals("dummyToken", createdUserDTO.getJwt());
     }
+
     @Test
     void getUserById() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -130,14 +138,87 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUser() {
+    void updateUser_passwordChange() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userDTO.setPassword("newPassword123");
+        when(passwordEncoder.matches("newPassword123", "hashedPassword")).thenReturn(false);
+
+        UserDTO updatedUserDTO1 = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO1);
+        assertEquals(user.getId(), updatedUserDTO1.getId());
+        verify(passwordEncoder).encode("newPassword123");
+        verify(userRepository).save(user);
+
+        reset(passwordEncoder, userRepository);
+
+        userDTO.setPassword("hashedPassword");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(passwordEncoder.matches("hashedPassword", "hashedPassword")).thenReturn(true);
+
+        UserDTO updatedUserDTO2 = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO2);
+        assertEquals(user.getId(), updatedUserDTO2.getId());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateUser_noPasswordChange() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userDTO.setPassword(null);
         UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
         assertNotNull(updatedUserDTO);
         assertEquals(user.getId(), updatedUserDTO.getId());
-        verify(userRepository).save(any(User.class));
-        assertEquals("dummyToken", updatedUserDTO.getJwt());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository, times(1)).save(user);
+
+        userDTO.setPassword("");
+        updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        assertEquals(user.getId(), updatedUserDTO.getId());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository, times(2)).save(user);
+    }
+
+    @Test
+    void updateUser_roleChange() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userDTO.setRole(Arrays.asList("ADMINISTRATOR", "USER"));
+        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        assertEquals(user.getId(), updatedUserDTO.getId());
+        assertEquals(Arrays.asList("ADMINISTRATOR", "USER"), updatedUserDTO.getRole());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateUser_noRoleChange() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userDTO.setRole(null);
+        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        assertEquals(user.getId(), updatedUserDTO.getId());
+        assertEquals(Collections.emptyList(), updatedUserDTO.getRole());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateUser_notFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            userService.updateUser(1L, userDTO);
+        });
+        assertEquals("User not found", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -170,6 +251,16 @@ class UserServiceImplTest {
     }
 
     @Test
+    void updateUserProfilePicture_success() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userService.updateUserProfilePicture(1L, "newPicture.jpg");
+        assertEquals("newPicture.jpg", user.getProfilePicture());
+        verify(userRepository).save(user);
+    }
+
+    @Test
     void updateUserProfilePicture_userNotFound_throwsException() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -178,7 +269,7 @@ class UserServiceImplTest {
         });
 
         assertEquals("User not found with id: 1", exception.getMessage());
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()). save(any(User.class));
     }
 }
 

@@ -30,7 +30,13 @@ public class PurchaseController {
     public ResponseEntity<?> purchaseGame(@PathVariable Long userId, @PathVariable Long gameId) {
         try {
             Purchase purchase = purchaseService.purchaseGame(userId, gameId);
-            return ResponseEntity.ok(purchase);
+            PurchaseDTO purchaseDTO = new PurchaseDTO(
+                    purchase.getId(),
+                    purchase.getGame().getTitle(),
+                    purchase.getAmount(),
+                    purchase.getPurchaseDate()
+            );
+            return ResponseEntity.ok(purchaseDTO);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalStateException e) {
