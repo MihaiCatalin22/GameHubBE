@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +35,12 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public UserDTO createUser(UserDTO userDTO) {
+        if (!StringUtils.hasText(userDTO.getUsername()) || !StringUtils.hasText(userDTO.getEmail()) || !StringUtils.hasText(userDTO.getPassword())) {
+            throw new IllegalArgumentException("Username, email, and password must not be empty");
+        }
+        if (userRepository.existsByUsername(userDTO.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
         User user = prepareUserEntity(userDTO);
         user = userRepository.save(user);
         return buildUserDTOwithJwt(user);
