@@ -66,18 +66,17 @@ class UserControllerIntegrationTest {
 
     @Test
     void createUserTest() throws Exception {
-        User newUser = new User();
-        newUser.setUsername("newUser");
-        newUser.setEmail("newuser@example.com");
-        newUser.setDescription("New gamer in town");
+        Map<String, Object> newUser = new HashMap<>();
+        newUser.put("username", "newUser");
+        newUser.put("email", "newuser@example.com");
+        newUser.put("password", "securePassword123");
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("newUser"))
-                .andExpect(jsonPath("$.email").value("newuser@example.com"))
-                .andExpect(jsonPath("$.description").value("New gamer in town"));
+                .andExpect(jsonPath("$.email").value("newuser@example.com"));
     }
 
     @Test
