@@ -16,7 +16,7 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
     List<Purchase> findByUserIdAndPurchaseDateAfterAndAmountLessThan(Long userId, Date fromDate, Double maxAmount);
 
     List<Purchase> findByUserIdAndPurchaseDateAfterAndAmountBetween(Long userId, Date fromDate, Double minAmount, Double maxAmount);
-
+    List<Purchase> findByUserId(Long userId);
     @Query("SELECT p FROM Purchase p WHERE p.user.id = :userId AND p.purchaseDate > :fromDate AND p.amount >= :minAmount AND p.amount < :maxAmount")
     List<Purchase> findPurchasesWithinRange(
             @Param("userId") Long userId,
