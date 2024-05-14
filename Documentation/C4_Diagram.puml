@@ -1,72 +1,122 @@
-@startuml ForumPostLevel4
+@startuml GameHubPurchaseAndRecommendationLayer
 
-class ForumPost {
-    -Long id
-    -String title
-    -String content
-    -User author
-    -Date creationDate
-    -long likesCount
-    -Set<Comment> comments
-    -Category category
+package "Domain Models" {
+    class Game {
+        -Long id
+        -String title
+        -String description
+        -Set<Genre> genres
+        -Date releaseDate
+        -String developer
+        -Double price
+        -List<Review> reviews
+        -List<Purchase> purchases
+    }
+
+    class Purchase {
+        -Long id
+        -User user
+        -Game game
+        -Date purchaseDate
+        -Double amount
+    }
+
+    class User {
+        -Long id
+        -String username
+        -String email
+        -List<Purchase> purchases
+    }
+
+    enum Genre {
+        ACTION, ADVENTURE, RPG, ...
+    }
 }
 
-class Comment {
-    -Long id
-    -String content
-    -User author
-    -Date creationDate
-    -ForumPost forumPost
+package "Controllers" {
+    class GameController {
+        +createGame(Game) : ResponseEntity<Game>
+        +getGameById(Long) : ResponseEntity<?>
+        +getGamesByUserId(Long) : List<Game>
+        +getAllGames() : ResponseEntity<List<Game>>
+        +updateGame(Long, Game) : ResponseEntity<Game>
+        +deleteGame(Long) : ResponseEntity<Void>
+    }
+
+    class PurchaseController {
+        +purchaseGame(Long, Long) : ResponseEntity<?>
+        +getPurchases(Long, Date, Double, Double) : ResponseEntity<List<PurchaseDTO>>
+    }
+
+    class RecommendationController {
+        +getRecommendations(Long) : ResponseEntity<List<Game>>
+    }
 }
 
-enum Category {
-    GENERAL,
-    QUESTIONS,
-    ANNOUNCEMENTS
+package "Services" {
+    interface GameService {
+        +createGame(Game) : Game
+        +getGameById(Long) : Optional<Game>
+        +getAllGames() : List<Game>
+        +updateGame(Long, Game) : Game
+        +deleteGame(Long) : void
+        +getGamesByUserId(Long) : List<Game>
+    }
+
+    interface PurchaseService {
+        +purchaseGame(Long, Long) : Purchase
+        +getPurchases(Long, Date, Double, Double) : List<PurchaseDTO>
+    }
+
+    interface RecommendationService {
+        +getRecommendationsForUser(Long) : List<Game>
+    }
+
+    class GameServiceImpl {
+        -GameRepository gameRepository
+        -UserRepository userRepository
+    }
+
+    class PurchaseServiceImpl {
+        -PurchaseRepository purchaseRepository
+        -UserRepository userRepository
+        -GameRepository gameRepository
+    }
+
+    class RecommendationServiceImpl {
+        -PurchaseRepository purchaseRepository
+        -GameRepository gameRepository
+    }
 }
 
-interface ForumService {
-    +ForumPostResponse createPost(ForumPost, Long)
-    +Optional<ForumPostResponse> getPostById(Long)
-    +List<ForumPost> getAllPosts()
-    +ForumPost updatePost(Long, ForumPost)
-    +void deletePost(Long)
-    +void likePost(Long, Long)
-    +Comment commentOnPost(Long, Comment, Long)
+package "Repositories" {
+    interface GameRepository {
+        +findRecommendations(Genre, Set<Long>) : List<Game>
+    }
+
+    interface PurchaseRepository {
+        +findByUserIdAndPurchaseDateAfter(Long, Date) : List<Purchase>
+        +findByUserIdAndPurchaseDateAfterAndAmountGreaterThanEqual(Long, Date, Double) : List<Purchase>
+        +findByUserIdAndPurchaseDateAfterAndAmountLessThan(Long, Date, Double) : List<Purchase>
+        +findByUserIdAndPurchaseDateAfterAndAmountBetween(Long, Date, Double, Double) : List<Purchase>
+        +findByUserId(Long) : List<Purchase>
+    }
+
+    interface UserRepository {
+        +findById(Long) : Optional<User>
+    }
 }
 
-class ForumServiceImpl {
-    -ForumPostRepository forumPostRepository
-    -CommentRepository commentRepository
-    -UserRepository userRepository
-    +ForumPostResponse createPost(ForumPost, Long)
-    +Optional<ForumPostResponse> getPostById(Long)
-    +List<ForumPost> getAllPosts()
-    +ForumPost updatePost(Long, ForumPost)
-    +void deletePost(Long)
-    +void likePost(Long, Long)
-    +Comment commentOnPost(Long, Comment, Long)
-    +ForumPostResponse toForumPostResponse(ForumPost)
-    +CommentDTO convertToCommentDTO(Comment)
-}
+GameController ..> GameService : uses
+PurchaseController ..> PurchaseService : uses
+RecommendationController ..> RecommendationService : uses
 
-interface ForumPostRepository {
-    +Optional<ForumPost> findById(Long)
-    +List<ForumPost> findAll()
-    +ForumPost save(ForumPost)
-    +void deleteById(Long)
-}
-
-interface CommentRepository {
-    +Comment save(Comment)
-}
-
-ForumServiceImpl .down.> ForumService : implements
-ForumServiceImpl --> ForumPostRepository : uses
-ForumServiceImpl --> CommentRepository : uses
-
-ForumPost "1" *-down- "0..*" Comment : contains
-ForumPost o-up- User : author
-Comment o-up- User : author
+GameServiceImpl ..> GameRepository : uses
+GameServiceImpl ..> UserRepository : uses
+PurchaseServiceImpl ..> PurchaseRepository : uses
+PurchaseServiceImpl ..> GameRepository : uses
+PurchaseServiceImpl ..> UserRepository : uses
+RecommendationServiceImpl ..> GameRepository : uses
+RecommendationServiceImpl ..> PurchaseRepository : uses
 
 @enduml

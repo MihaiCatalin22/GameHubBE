@@ -13,6 +13,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     Component(forumController, "Forum Controller", "Spring MVC Rest Controller", "RESTful API endpoints for forum operations.")
     Component(userController, "User Controller", "Spring MVC Rest Controller", "RESTful API endpoints for user operations.")
     Component(eventController, "Event Controller", "Spring MVC Rest Controller", "RESTful API endpoints for event operations.")
+    Component(fileStorageController, "File Storage Controller", "Spring MVC Rest Controller", "Handles file uploads and retrievals.")
+    Component(purchaseController, "Purchase Controller", "Spring MVC Rest Controller", "Handles transactions and purchases.")
+    Component(recommendationController, "Recommendation Controller", "Spring MVC Rest Controller", "Provides game recommendations based on user preferences.")
 
     Component(categoryService, "Category Service", "Spring Service", "Handles operations related to categories.")
     Component(genreService, "Genre Service", "Spring Service", "Handles operations related to genres.")
@@ -21,6 +24,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     Component(forumService, "Forum Service", "Spring Service", "Handles forum post creation and management.")
     Component(userService, "User Service", "Spring Service", "Manages user information and actions.")
     Component(eventService, "Event Service", "Spring Service", "Handles event-related functionality.")
+    Component(fileStorageService, "File Storage Service", "Spring Service", "Manages file storage operations.")
+    Component(purchaseService, "Purchase Service", "Spring Service", "Processes payments and manages transaction records.")
+    Component(recommendationService, "Recommendation Service", "Spring Service", "Analyzes user data to provide personalized game recommendations.")
 
     ComponentDb(categoryRepository, "Category Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(genreRepository, "Genre Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
@@ -29,6 +35,8 @@ Container_Boundary(api, "GameHub Backend Service") {
     ComponentDb(forumPostRepository, "Forum Post Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(userRepository, "User Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(eventRepository, "Event Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
+    ComponentDb(purchaseRepository, "Purchase Repository", "JPA Repository", "Stores transaction and purchase details.")
+    ComponentDb(recommendationRepository, "Recommendation Repository", "JPA Repository", "Stores and processes user preferences and game metadata for recommendations.")
 
     Rel(categoryController, categoryService, "Uses")
     Rel(genreController, genreService, "Uses")
@@ -37,6 +45,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     Rel(forumController, forumService, "Uses")
     Rel(userController, userService, "Uses")
     Rel(eventController, eventService, "Uses")
+    Rel(fileStorageController, fileStorageService, "Uses")
+    Rel(purchaseController, purchaseService, "Uses")
+    Rel(recommendationController, recommendationService, "Uses")
 
     Rel(categoryService, categoryRepository, "Reads from and writes to")
     Rel(genreService, genreRepository, "Reads from and writes to")
@@ -45,7 +56,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     Rel(forumService, forumPostRepository, "Reads from and writes to")
     Rel(userService, userRepository, "Reads from and writes to")
     Rel(eventService, eventRepository, "Reads from and writes to")
-}
+    Rel(purchaseService, purchaseRepository, "Reads from and writes to")
+    Rel(recommendationService, recommendationRepository, "Reads from and writes to")
+    }
 
 ContainerDb(database, "Database", "MySQL", "Stores all the platform's data.")
 
@@ -56,6 +69,9 @@ Rel(webApp, gameController, "Makes API calls to")
 Rel(webApp, forumController, "Makes API calls to")
 Rel(webApp, userController, "Makes API calls to")
 Rel(webApp, eventController, "Makes API calls to")
+Rel(webApp, fileStorageController, "Makes API calls to")
+Rel(webApp, purchaseController, "Makes API calls to")
+Rel(webApp, recommendationController, "Makes API calls to")
 
 Rel(categoryRepository, database, "Reads from and writes to")
 Rel(genreRepository, database, "Reads from and writes to")
@@ -64,5 +80,7 @@ Rel(gameRepository, database, "Reads from and writes to")
 Rel(forumPostRepository, database, "Reads from and writes to")
 Rel(userRepository, database, "Reads from and writes to")
 Rel(eventRepository, database, "Reads from and writes to")
+Rel(purchaseRepository, database, "Reads from and writes to")
+Rel(recommendationRepository, database, "Reads from and writes to")
 
 @enduml

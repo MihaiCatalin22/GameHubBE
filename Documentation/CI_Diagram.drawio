@@ -1,0 +1,67 @@
+<mxfile host="app.diagrams.net" modified="2024-05-13T05:55:55.364Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 OPR/109.0.0.0" etag="XNX6LwGIo3zbcHiuAWso" version="24.4.0" type="device">
+  <diagram name="Page-1" id="pe52HGPeSi2s6OKuyh_Y">
+    <mxGraphModel dx="2033" dy="1195" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-1" value="Developer&#39;s computer" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="365" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-2" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="175" y="290" width="500" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-3" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="340" width="470" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-4" value="GitLab Server" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="190" y="300" width="85" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-5" value="CI Pipeline" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="202.5" y="350" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-6" value="Build&amp;nbsp; Stage (Gradle)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="395" width="102.5" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-7" value="Test Stage (Jacoco Test Report)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="355" y="395" width="140" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-8" value="Sonar Stage (SonarQube)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="395" width="110" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-9" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="BFWfgl-I0xqWNeOx7CLU-6" target="BFWfgl-I0xqWNeOx7CLU-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="530" as="sourcePoint" />
+            <mxPoint x="450" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-10" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="BFWfgl-I0xqWNeOx7CLU-1" target="BFWfgl-I0xqWNeOx7CLU-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="530" as="sourcePoint" />
+            <mxPoint x="450" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-11" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="BFWfgl-I0xqWNeOx7CLU-7" target="BFWfgl-I0xqWNeOx7CLU-8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="530" as="sourcePoint" />
+            <mxPoint x="450" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-12" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="BFWfgl-I0xqWNeOx7CLU-2" target="BFWfgl-I0xqWNeOx7CLU-13">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="630" as="sourcePoint" />
+            <mxPoint x="240" y="580" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="425" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-13" value="GitLab Runner&lt;br&gt;(set up locally)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="365" y="580" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="BFWfgl-I0xqWNeOx7CLU-14" value="Push" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="420" y="240" width="60" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
