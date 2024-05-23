@@ -54,4 +54,11 @@ public class PurchaseController {
         List<PurchaseDTO> purchases = purchaseService.getPurchases(userId, fromDate, minAmount, maxAmount);
         return ResponseEntity.ok(purchases);
     }
+
+    @GetMapping("/owns")
+    @PreAuthorize("#userId == principal.id")
+    public ResponseEntity<Boolean> checkOwnership(@RequestParam Long userId, @RequestParam Long gameId) {
+        boolean ownsGame = purchaseService.checkOwnership(userId, gameId);
+        return ResponseEntity.ok(ownsGame);
+    }
 }

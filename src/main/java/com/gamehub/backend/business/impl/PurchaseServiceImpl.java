@@ -77,4 +77,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                 ))
                 .toList();
     }
+    @Override
+    public boolean checkOwnership(Long userId, Long gameId) {
+        return purchaseRepository.existsByUserIdAndGameId(userId, gameId);
+    }
 }

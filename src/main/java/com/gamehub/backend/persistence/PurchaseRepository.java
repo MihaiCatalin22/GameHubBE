@@ -24,4 +24,7 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
             @Param("minAmount") Double minAmount,
             @Param("maxAmount") Double maxAmount
     );
+
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Purchase p WHERE p.user.id = :userId AND p.game.id = :gameId")
+    boolean existsByUserIdAndGameId(@Param("userId") Long userId, @Param("gameId") Long gameId);
 }

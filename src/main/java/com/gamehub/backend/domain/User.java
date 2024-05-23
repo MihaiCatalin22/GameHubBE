@@ -25,6 +25,7 @@ public class User {
     private String profilePicture;
 
     private String description;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "Role", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
@@ -38,5 +39,3 @@ public class User {
     @JsonManagedReference(value = "user-purchase")
     private List<Purchase> purchases = new ArrayList<>();
 }
-
-

@@ -9,4 +9,5 @@ import java.util.List;
 public interface PurchaseService {
     Purchase purchaseGame(Long userId, Long gameId);
     List<PurchaseDTO> getPurchases(Long userId, Date fromDate, Double minAmount, Double maxAmount);
+    boolean checkOwnership(Long userId, Long gameId);
 }

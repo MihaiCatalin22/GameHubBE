@@ -32,4 +32,3 @@ public class JSONConfig {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 }
-

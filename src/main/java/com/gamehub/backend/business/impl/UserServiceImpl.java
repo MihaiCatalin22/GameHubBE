@@ -67,10 +67,8 @@ public class UserServiceImpl implements UserService {
                         existingUser.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
                     }
                     existingUser.setDescription(userDTO.getDescription());
-                    if (userDTO.getRole() != null) {
+                    if (userDTO.getRole() != null && !userDTO.getRole().isEmpty()) {
                         existingUser.setRoles(userDTO.getRole().stream().map(Role::valueOf).toList());
-                    } else {
-                        existingUser.setRoles(Collections.emptyList());
                     }
                     userRepository.save(existingUser);
                     return mapToDto(existingUser);
