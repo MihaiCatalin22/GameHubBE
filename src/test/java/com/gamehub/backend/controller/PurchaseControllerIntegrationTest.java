@@ -226,4 +226,16 @@ class PurchaseControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].gameTitle").value("Elden Ring"))
                 .andExpect(jsonPath("$[0].amount").value(59.99));
     }
+    @Test
+    void checkOwnershipTest() throws Exception {
+        setupAuthentication();
+
+        when(purchaseRepository.existsByUserIdAndGameId(1L, 1L)).thenReturn(true);
+
+        mockMvc.perform(get("/purchases/owns")
+                        .param("userId", "1")
+                        .param("gameId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(true));
+    }
 }

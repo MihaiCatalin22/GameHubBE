@@ -169,5 +169,24 @@ class PurchaseServiceImplTest {
         assertEquals(user.getPurchases().size(), purchases.size());
         verify(purchaseRepository).findByUserIdAndPurchaseDateAfterAndAmountLessThan(1L, fromDate, 30.0);
     }
+    @Test
+    void checkOwnership() {
+        when(purchaseRepository.existsByUserIdAndGameId(1L, 1L)).thenReturn(true);
+
+        boolean ownsGame = purchaseService.checkOwnership(1L, 1L);
+
+        assertTrue(ownsGame);
+        verify(purchaseRepository).existsByUserIdAndGameId(1L, 1L);
+    }
+
+    @Test
+    void checkOwnershipNotOwned() {
+        when(purchaseRepository.existsByUserIdAndGameId(1L, 1L)).thenReturn(false);
+
+        boolean ownsGame = purchaseService.checkOwnership(1L, 1L);
+
+        assertFalse(ownsGame);
+        verify(purchaseRepository).existsByUserIdAndGameId(1L, 1L);
+    }
 }
 

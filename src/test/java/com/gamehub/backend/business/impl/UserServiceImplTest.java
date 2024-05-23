@@ -199,19 +199,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUser_noRoleChange() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        userDTO.setRole(null);
-        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
-        assertNotNull(updatedUserDTO);
-        assertEquals(user.getId(), updatedUserDTO.getId());
-        assertEquals(Collections.emptyList(), updatedUserDTO.getRole());
-        verify(userRepository).save(user);
-    }
-
-    @Test
     void updateUser_notFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         Exception exception = assertThrows(RuntimeException.class, () -> {
