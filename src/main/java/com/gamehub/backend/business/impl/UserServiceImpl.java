@@ -1,10 +1,13 @@
 package com.gamehub.backend.business.impl;
 
+import com.gamehub.backend.domain.FriendRelationship;
+import com.gamehub.backend.dto.FriendRequestDTO;
 import com.gamehub.backend.dto.UserDTO;
 import com.gamehub.backend.business.UserService;
 import com.gamehub.backend.configuration.security.token.JwtUtil;
 import com.gamehub.backend.domain.Role;
 import com.gamehub.backend.domain.User;
+import com.gamehub.backend.persistence.FriendRelationshipRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import com.gamehub.backend.persistence.mapper.UserMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,13 +23,15 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final FriendRelationshipRepository friendRelationshipRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.friendRelationshipRepository = friendRelationshipRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
@@ -115,5 +120,77 @@ public class UserServiceImpl implements UserService {
         UserDTO dto = userMapper.toDto(user);
         dto.setJwt(jwtUtil.generateToken(user.getUsername()));
         return dto;
+    }
+
+    @Override
+    public FriendRelationship sendRequest(Long userId, Long friendId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id " + userId));
+        User friend = userRepository.findById(friendId).orElseThrow(() -> new EntityNotFoundException("Friend not found with id " + friendId));
+
+        boolean friendRequestExists = friendRelationshipRepository.existsByUserAndFriend(user, friend) ||
+                friendRelationshipRepository.existsByUserAndFriend(friend, user);
+        boolean pendingRequestExists = friendRelationshipRepository.existsByUserAndFriendAndStatus(user, friend, FriendRelationship.Status.PENDING) ||
+                friendRelationshipRepository.existsByUserAndFriendAndStatus(friend, user, FriendRelationship.Status.PENDING);
+
+        if (friendRequestExists || pendingRequestExists) {
+            throw new IllegalArgumentException("Friend request already sent or user is already your friend");
+        }
+
+        FriendRelationship relationship = new FriendRelationship();
+        relationship.setUser(user);
+        relationship.setFriend(friend);
+        relationship.setStatus(FriendRelationship.Status.PENDING);
+        return friendRelationshipRepository.save(relationship);
+    }
+
+    @Override
+    public List<FriendRequestDTO> getPendingRequests(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id " + userId));
+
+        List<FriendRelationship> pendingRelationships = friendRelationshipRepository.findByFriendAndStatus(user, FriendRelationship.Status.PENDING);
+
+        List<FriendRequestDTO> pendingRequests = pendingRelationships.stream()
+                .map(relationship -> new FriendRequestDTO(
+                        relationship.getId(),
+                        userMapper.toDto(relationship.getUser()),
+                        userMapper.toDto(relationship.getFriend()),
+                        relationship.getStatus()))
+                .toList();
+
+        return pendingRequests;
+    }
+
+    @Override
+    public FriendRelationship respondToRequest(Long relationshipId, FriendRelationship.Status status) {
+        FriendRelationship relationship = friendRelationshipRepository.findById(relationshipId).orElseThrow(() -> new EntityNotFoundException("Friend relationship not found with id " + relationshipId));
+        relationship.setStatus(status);
+        if (status == FriendRelationship.Status.ACCEPTED) {
+            relationship = friendRelationshipRepository.save(relationship);
+        }
+        return relationship;
+    }
+
+    @Override
+    public List<FriendRequestDTO> getFriends(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id " + userId));
+        List<FriendRelationship> friendRelationships = friendRelationshipRepository.findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, user, FriendRelationship.Status.ACCEPTED);
+
+        return friendRelationships.stream()
+                .map(relationship -> new FriendRequestDTO(
+                        relationship.getId(),
+                        userMapper.toDto(relationship.getUser()),
+                        userMapper.toDto(relationship.getFriend()),
+                        relationship.getStatus()))
+                .toList();
+    }
+
+    @Override
+    public void removeFriend(Long userId, Long friendId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id " + userId));
+        User friend = userRepository.findById(friendId).orElseThrow(() -> new EntityNotFoundException("Friend not found with id " + friendId));
+
+        List<FriendRelationship> relationships = friendRelationshipRepository.findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, friend, FriendRelationship.Status.ACCEPTED);
+        relationships.forEach(friendRelationshipRepository::delete);
     }
 }

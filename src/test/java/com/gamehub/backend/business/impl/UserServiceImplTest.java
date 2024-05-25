@@ -1,9 +1,12 @@
 package com.gamehub.backend.business.impl;
 
+import com.gamehub.backend.domain.FriendRelationship;
 import com.gamehub.backend.domain.Role;
+import com.gamehub.backend.dto.FriendRequestDTO;
 import com.gamehub.backend.dto.UserDTO;
 import com.gamehub.backend.configuration.security.token.JwtUtil;
 import com.gamehub.backend.domain.User;
+import com.gamehub.backend.persistence.FriendRelationshipRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import com.gamehub.backend.persistence.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +32,8 @@ class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private FriendRelationshipRepository friendRelationshipRepository;
+    @Mock
     private JwtUtil jwtUtil;
 
     @Mock
@@ -41,6 +46,8 @@ class UserServiceImplTest {
 
     private User user;
     private UserDTO userDTO;
+    private User friend;
+    private FriendRelationship friendRelationship;
     @BeforeEach
     void setUp() {
         user = new User();
@@ -58,6 +65,17 @@ class UserServiceImplTest {
         userDTO.setPassword("password123");
         userDTO.setProfilePicture("oldPicture.jpg");
         userDTO.setRole(Collections.singletonList("USER"));
+
+        friend = new User();
+        friend.setId(2L);
+        friend.setUsername("testFriend");
+        friend.setEmail("friend@example.com");
+
+        friendRelationship = new FriendRelationship();
+        friendRelationship.setId(1L);
+        friendRelationship.setUser(user);
+        friendRelationship.setFriend(friend);
+        friendRelationship.setStatus(FriendRelationship.Status.PENDING);
 
         lenient().when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
         lenient().when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
@@ -257,6 +275,96 @@ class UserServiceImplTest {
 
         assertEquals("User not found with id: 1", exception.getMessage());
         verify(userRepository, never()). save(any(User.class));
+    }
+
+    @Test
+    void sendRequest() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
+        when(friendRelationshipRepository.save(any(FriendRelationship.class))).thenReturn(friendRelationship);
+
+        FriendRelationship result = userService.sendRequest(1L, 2L);
+
+        assertNotNull(result);
+        assertEquals(FriendRelationship.Status.PENDING, result.getStatus());
+        verify(friendRelationshipRepository).save(any(FriendRelationship.class));
+    }
+
+    @Test
+    void sendRequest_alreadyFriendsOrPending() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
+        when(friendRelationshipRepository.existsByUserAndFriend(any(User.class), any(User.class))).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+
+        reset(friendRelationshipRepository);
+        when(friendRelationshipRepository.existsByUserAndFriend(any(User.class), any(User.class))).thenReturn(false);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(any(User.class), any(User.class), eq(FriendRelationship.Status.PENDING))).thenReturn(true);
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+    }
+
+    @Test
+    void getPendingRequests() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
+        when(friendRelationshipRepository.findByFriendAndStatus(friend, FriendRelationship.Status.PENDING))
+                .thenReturn(Collections.singletonList(friendRelationship));
+
+        List<FriendRequestDTO> result = userService.getPendingRequests(2L);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(friendRelationship.getId(), result.get(0).getId());
+        verify(friendRelationshipRepository).findByFriendAndStatus(friend, FriendRelationship.Status.PENDING);
+    }
+
+    @Test
+    void respondToRequest() {
+        when(friendRelationshipRepository.findById(1L)).thenReturn(Optional.of(friendRelationship));
+        when(friendRelationshipRepository.save(any(FriendRelationship.class))).thenReturn(friendRelationship);
+
+        FriendRelationship result = userService.respondToRequest(1L, FriendRelationship.Status.ACCEPTED);
+
+        assertNotNull(result);
+        assertEquals(FriendRelationship.Status.ACCEPTED, result.getStatus());
+        verify(friendRelationshipRepository).save(friendRelationship);
+    }
+
+    @Test
+    void getFriends() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(friendRelationshipRepository.findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, user, FriendRelationship.Status.ACCEPTED))
+                .thenReturn(Collections.singletonList(friendRelationship));
+
+        List<FriendRequestDTO> result = userService.getFriends(1L);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(friendRelationship.getId(), result.get(0).getId());
+        verify(friendRelationshipRepository).findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, user, FriendRelationship.Status.ACCEPTED);
+    }
+
+    @Test
+    void removeFriend() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
+        when(friendRelationshipRepository.findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, friend, FriendRelationship.Status.ACCEPTED))
+                .thenReturn(Collections.singletonList(friendRelationship));
+
+        doNothing().when(friendRelationshipRepository).delete(any(FriendRelationship.class));
+
+        userService.removeFriend(1L, 2L);
+
+        verify(friendRelationshipRepository).delete(friendRelationship);
     }
 }
 

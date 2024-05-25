@@ -1,6 +1,8 @@
 package com.gamehub.backend.controller;
 
 import com.gamehub.backend.configuration.security.token.JwtUtil;
+import com.gamehub.backend.domain.FriendRelationship;
+import com.gamehub.backend.dto.FriendRequestDTO;
 import com.gamehub.backend.dto.UserDTO;
 import com.gamehub.backend.business.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,5 +67,37 @@ public class UserController {
         return userService.login(userDTO)
                 .map(dto -> ResponseEntity.ok().header("Authorization", "Bearer " + dto.getJwt()).body(dto))
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    @PostMapping("/friend-requests/send")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FriendRelationship> sendRequest(@RequestParam Long userId, @RequestParam Long friendId) {
+        return ResponseEntity.ok(userService.sendRequest(userId, friendId));
+    }
+
+    @GetMapping("/friend-requests/pending/{userId}")
+    @PreAuthorize("#userId == principal.id")
+    public ResponseEntity<List<FriendRequestDTO>> getPendingRequests(@PathVariable Long userId) {
+        List<FriendRequestDTO> pendingRequests = userService.getPendingRequests(userId);
+        return ResponseEntity.ok(pendingRequests);
+    }
+
+    @PostMapping("/friend-requests/respond")
+    @PreAuthorize("#userId == principal.id")
+    public ResponseEntity<FriendRelationship> respondToRequest(@RequestParam Long relationshipId, @RequestParam Long userId, @RequestParam FriendRelationship.Status status) {
+        return ResponseEntity.ok(userService.respondToRequest(relationshipId, status));
+    }
+
+    @GetMapping("/friends/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<FriendRequestDTO>> getFriends(@PathVariable Long userId) {
+        List<FriendRequestDTO> friends = userService.getFriends(userId);
+        return ResponseEntity.ok(friends);
+    }
+    @DeleteMapping("/friends/remove")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> removeFriend(@RequestParam Long userId, @RequestParam Long friendId) {
+        userService.removeFriend(userId, friendId);
+        return ResponseEntity.ok().build();
     }
 }

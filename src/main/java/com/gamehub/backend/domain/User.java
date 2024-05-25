@@ -38,4 +38,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "user-purchase")
     private List<Purchase> purchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<FriendRelationship> friendRelationships = new ArrayList<>();
 }
