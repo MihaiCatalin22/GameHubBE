@@ -18,5 +18,5 @@ public interface UserService {
     List<FriendRequestDTO> getPendingRequests(Long userId);
     FriendRelationship respondToRequest(Long relationshipId, FriendRelationship.Status status);
     List<FriendRequestDTO> getFriends(Long userId);
-    void removeFriend(Long userId, Long friendId);
+    void removeFriend(Long relationshipId);
 }

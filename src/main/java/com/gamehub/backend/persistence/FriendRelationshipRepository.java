@@ -10,6 +10,7 @@ public interface FriendRelationshipRepository extends JpaRepository<FriendRelati
     List<FriendRelationship> findByUserAndStatus(User user, FriendRelationship.Status status);
     List<FriendRelationship> findByFriendAndStatus(User friend, FriendRelationship.Status status);
     List<FriendRelationship> findByUserAndStatusOrFriendAndStatus(User user, FriendRelationship.Status userStatus, User friend, FriendRelationship.Status friendStatus);
+    List<FriendRelationship> findByUserAndFriendOrFriendAndUser(User user, User friend, User friendAsUser, User userAsFriend);
 
     boolean existsByUserAndFriend(User user, User friend);
     boolean existsByUserAndFriendAndStatus(User user, User friend, FriendRelationship.Status status);

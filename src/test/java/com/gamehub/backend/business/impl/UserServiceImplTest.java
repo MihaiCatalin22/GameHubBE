@@ -355,14 +355,11 @@ class UserServiceImplTest {
 
     @Test
     void removeFriend() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
-        when(friendRelationshipRepository.findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, friend, FriendRelationship.Status.ACCEPTED))
-                .thenReturn(Collections.singletonList(friendRelationship));
+        when(friendRelationshipRepository.findById(1L)).thenReturn(Optional.of(friendRelationship));
 
         doNothing().when(friendRelationshipRepository).delete(any(FriendRelationship.class));
 
-        userService.removeFriend(1L, 2L);
+        userService.removeFriend(1L);
 
         verify(friendRelationshipRepository).delete(friendRelationship);
     }

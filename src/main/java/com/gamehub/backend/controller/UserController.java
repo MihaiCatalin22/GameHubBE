@@ -94,10 +94,10 @@ public class UserController {
         List<FriendRequestDTO> friends = userService.getFriends(userId);
         return ResponseEntity.ok(friends);
     }
-    @DeleteMapping("/friends/remove")
+    @DeleteMapping("/friends/remove/{relationshipId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> removeFriend(@RequestParam Long userId, @RequestParam Long friendId) {
-        userService.removeFriend(userId, friendId);
+    public ResponseEntity<Void> removeFriend(@PathVariable Long relationshipId) {
+        userService.removeFriend(relationshipId);
         return ResponseEntity.ok().build();
     }
 }

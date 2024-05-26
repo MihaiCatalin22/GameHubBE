@@ -186,11 +186,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void removeFriend(Long userId, Long friendId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id " + userId));
-        User friend = userRepository.findById(friendId).orElseThrow(() -> new EntityNotFoundException("Friend not found with id " + friendId));
-
-        List<FriendRelationship> relationships = friendRelationshipRepository.findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, friend, FriendRelationship.Status.ACCEPTED);
-        relationships.forEach(friendRelationshipRepository::delete);
+    public void removeFriend(Long relationshipId) {
+        FriendRelationship relationship = friendRelationshipRepository.findById(relationshipId)
+                .orElseThrow(() -> new EntityNotFoundException("Friend relationship not found with id " + relationshipId));
+        friendRelationshipRepository.delete(relationship);
     }
 }
