@@ -1,11 +1,16 @@
 package com.gamehub.backend.controller;
 
+import com.gamehub.backend.business.NotificationService;
 import com.gamehub.backend.domain.Event;
 import com.gamehub.backend.business.EventService;
+import com.gamehub.backend.domain.Notification;
 import com.gamehub.backend.domain.User;
+import com.gamehub.backend.dto.NotificationDTO;
+import com.gamehub.backend.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,16 +22,42 @@ import java.util.Set;
 @RequestMapping("/events")
 public class EventController {
     private final EventService eventService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, NotificationService notificationService, UserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
         this.eventService = eventService;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER')")
     public ResponseEntity<Event> createEvent(@RequestBody Event event) {
         Event createdEvent = eventService.createEvent(event);
+        userRepository.findAll().forEach(user -> {
+            Notification notification = new Notification();
+            notification.setUser(user);
+            notification.setMessage("A new event has been created: " + createdEvent.getName());
+            notification.setType("event");
+            notification.setEventId(createdEvent.getId());
+            Notification savedNotification = notificationService.save(notification);
+
+            NotificationDTO notificationDTO = new NotificationDTO(
+                    savedNotification.getId(),
+                    user.getId(),
+                    savedNotification.getMessage(),
+                    savedNotification.getType(),
+                    null,
+                    createdEvent.getId()
+            );
+
+            messagingTemplate.convertAndSend("/user/" + user.getId() + "/queue/notifications", notificationDTO);
+        });
+
         return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 

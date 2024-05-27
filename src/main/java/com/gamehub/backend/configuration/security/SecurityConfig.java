@@ -24,11 +24,12 @@ public class SecurityConfig {
                         .requestMatchers("/users/**","/users/login", "/register").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/categories/**", "/genres/**").permitAll()
+                        .requestMatchers("/chat/**", "/notifications/**").permitAll()
                         .requestMatchers("/games/**", "/reviews/**", "/forum/**", "/purchases/**", "/recommendations/**").authenticated()
                         .requestMatchers("/events/**").hasAnyAuthority("USER", "ADMINISTRATOR", "COMMUNITY_MANAGER")
                         .requestMatchers("/admin/**").hasAuthority("ADMINISTRATOR")
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**").permitAll())
-
                 // .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
