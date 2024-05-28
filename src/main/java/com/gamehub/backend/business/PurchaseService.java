@@ -1,6 +1,7 @@
 package com.gamehub.backend.business;
 
 import com.gamehub.backend.domain.Purchase;
+import com.gamehub.backend.dto.GamesSalesStatisticsDTO;
 import com.gamehub.backend.dto.PurchaseDTO;
 
 import java.util.Date;
@@ -10,4 +11,5 @@ public interface PurchaseService {
     Purchase purchaseGame(Long userId, Long gameId);
     List<PurchaseDTO> getPurchases(Long userId, Date fromDate, Double minAmount, Double maxAmount);
     boolean checkOwnership(Long userId, Long gameId);
+    List<GamesSalesStatisticsDTO> getSalesStatistics(String gameTitle, int days);
 }

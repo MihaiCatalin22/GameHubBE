@@ -3,6 +3,7 @@ package com.gamehub.backend.business.impl;
 import com.gamehub.backend.domain.Game;
 import com.gamehub.backend.domain.Purchase;
 import com.gamehub.backend.domain.User;
+import com.gamehub.backend.dto.GamesSalesStatisticsDTO;
 import com.gamehub.backend.dto.PurchaseDTO;
 import com.gamehub.backend.persistence.GameRepository;
 import com.gamehub.backend.persistence.PurchaseRepository;
@@ -12,14 +13,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import jakarta.persistence.EntityNotFoundException;
+
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -169,6 +169,7 @@ class PurchaseServiceImplTest {
         assertEquals(user.getPurchases().size(), purchases.size());
         verify(purchaseRepository).findByUserIdAndPurchaseDateAfterAndAmountLessThan(1L, fromDate, 30.0);
     }
+
     @Test
     void checkOwnership() {
         when(purchaseRepository.existsByUserIdAndGameId(1L, 1L)).thenReturn(true);
@@ -188,5 +189,104 @@ class PurchaseServiceImplTest {
         assertFalse(ownsGame);
         verify(purchaseRepository).existsByUserIdAndGameId(1L, 1L);
     }
+
+    @Test
+    void getSalesStatisticsAllTime() {
+        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 3L, 59.97});
+        when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange("", null, null)).thenReturn(mockStats);
+
+        List<GamesSalesStatisticsDTO> stats = purchaseService.getSalesStatistics("", 0);
+
+        assertNotNull(stats);
+        assertFalse(stats.isEmpty());
+        assertEquals(1, stats.size());
+        assertEquals("Test Game", stats.get(0).getGameTitle());
+        assertEquals(3L, stats.get(0).getTotalUnitsSold());
+        assertEquals(59.97, stats.get(0).getTotalRevenue());
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("", null, null);
+    }
+
+    @Test
+    void getSalesStatisticsNoTitle() {
+        Mockito.lenient().when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange(anyString(), any(Date.class), any(Date.class)))
+                .thenReturn(Collections.singletonList(new Object[]{"Test Game", 5L, 99.95}));
+
+        int days = 7;
+        Date endDate = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(endDate);
+        cal.add(Calendar.DAY_OF_YEAR, -days);
+        Date startDate = cal.getTime();
+
+        List<GamesSalesStatisticsDTO> result = purchaseService.getSalesStatistics(null, days);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals("Test Game", result.get(0).getGameTitle());
+        assertEquals(5L, result.get(0).getTotalUnitsSold());
+        assertEquals(99.95, result.get(0).getTotalRevenue());
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("", startDate, endDate);
+    }
+
+    @Test
+    void getSalesStatisticsZeroDays() {
+        Object[] stat = new Object[]{"Test Game", 5L, 99.95};
+        List<Object[]> stats = Collections.singletonList(stat);
+
+        when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange("Test Game", null, null))
+                .thenReturn(stats);
+
+        List<GamesSalesStatisticsDTO> result = purchaseService.getSalesStatistics("Test Game", 0);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals("Test Game", result.get(0).getGameTitle());
+        assertEquals(5L, result.get(0).getTotalUnitsSold());
+        assertEquals(99.95, result.get(0).getTotalRevenue());
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("Test Game", null, null);
+    }
+
+    @Test
+    void getSalesStatisticsNoResults() {
+        when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange("Nonexistent Game", null, null))
+                .thenReturn(Collections.emptyList());
+
+        List<GamesSalesStatisticsDTO> result = purchaseService.getSalesStatistics("Nonexistent Game", 0);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("Nonexistent Game", null, null);
+    }
+
+    @Test
+    void getSalesStatisticsWithCalendar() {
+        Mockito.lenient().when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange(anyString(), any(Date.class), any(Date.class)))
+                .thenReturn(Collections.singletonList(new Object[]{"Test Game", 3L, 59.97}));
+
+        String gameTitle = "Test Game";
+        int days = 5;
+        Date endDate = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(endDate);
+        cal.add(Calendar.DAY_OF_YEAR, -days);
+        Date startDate = cal.getTime();
+
+        List<GamesSalesStatisticsDTO> result = purchaseService.getSalesStatistics(gameTitle, days);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals("Test Game", result.get(0).getGameTitle());
+        assertEquals(3L, result.get(0).getTotalUnitsSold());
+        assertEquals(59.97, result.get(0).getTotalRevenue());
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange(gameTitle, startDate, endDate);
+    }
 }
+
+
+
+
+
 

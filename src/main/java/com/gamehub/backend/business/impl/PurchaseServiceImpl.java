@@ -5,6 +5,7 @@ import com.gamehub.backend.domain.Game;
 import com.gamehub.backend.domain.Purchase;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.dto.PurchaseDTO;
+import com.gamehub.backend.dto.GamesSalesStatisticsDTO;
 import com.gamehub.backend.persistence.GameRepository;
 import com.gamehub.backend.persistence.PurchaseRepository;
 import com.gamehub.backend.persistence.UserRepository;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -80,5 +82,28 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public boolean checkOwnership(Long userId, Long gameId) {
         return purchaseRepository.existsByUserIdAndGameId(userId, gameId);
+    }
+
+    @Override
+    public List<GamesSalesStatisticsDTO> getSalesStatistics(String gameTitle, int days) {
+        Date startDate = null;
+        Date endDate = new Date();
+
+        if (days > 0) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(endDate);
+            cal.add(Calendar.DAY_OF_YEAR, -days);
+            startDate = cal.getTime();
+        }
+
+        List<Object[]> stats = purchaseRepository.findGameSalesStatisticsByTitleAndDateRange(
+                gameTitle == null ? "" : gameTitle,
+                startDate,
+                days == 0 ? null : endDate
+        );
+
+        return stats.stream()
+                .map(stat -> new GamesSalesStatisticsDTO((String) stat[0], (Long) stat[1], (Double) stat[2]))
+                .toList();
     }
 }
