@@ -34,7 +34,7 @@ sonarqube-check:
     - main
     - develop
     - /^feature\/.*$/
-    
+
 deploy:
     stage: deploy
     image: docker:stable
