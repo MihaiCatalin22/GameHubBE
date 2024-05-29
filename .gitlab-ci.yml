@@ -1,8 +1,6 @@
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-  DOCKER_DRIVER: overlay2
-  DOCKER_BUILDKIT: 1
-  FRONTEND_REPO: "git.fhict.nl/I500157/individual-assignment-semester-3-fe.git"
+  FRONTEND_REPO: "https://git.fhict.nl/I500157/individual-assignment-semester-3-fe.git"
   FRONTEND_REPO_USER: "gitlab+deploy-token-398"
   FRONTEND_REPO_TOKEN: "dvPr17fePz2kybw-JT8Y"
 
@@ -10,16 +8,20 @@ stages:
   - build
   - test
   - sonarqube-check
-  - deploy
+
 build:
   stage: build
   script:
-  - ./gradlew assemble
+    - git clone https://${FRONTEND_REPO_USER}:${FRONTEND_REPO_TOKEN}@${FRONTEND_REPO} ../frontend
+    - ./gradlew assemble
+    - docker build -t my-backend:latest -f Dockerfile .
+    - cd ../frontend/individual-assignment-semester-3-fe
+    - docker build -t my-frontend:latest -f Dockerfile .
 
 test:
   stage: test
   script:
-  - ./gradlew test
+    - ./gradlew test
 
 sonarqube-check:
   stage: sonarqube-check
@@ -40,21 +42,8 @@ sonarqube-check:
 
 deploy:
   stage: deploy
-  image: docker:stable
-  services:
-    - docker:dind
-  before_script:
-    - git clone https://${FRONTEND_REPO_USER}:${FRONTEND_REPO_TOKEN}@${FRONTEND_REPO} ../frontend
   script:
-    - ./gradlew assemble
-
-    - docker build -t my-backend:latest -f Dockerfile .
-
-    - cd ../frontend/individual-assignment-semester-3-fe
-    - docker build -t my-frontend:latest -f Dockerfile .
-
-    - cd ${CI_PROJECT_DIR}
-    - docker-compose -f docker-compose.yml up -d --build
+    - docker-compose up --build -d
   only:
     - main
     - develop
