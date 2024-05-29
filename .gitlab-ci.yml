@@ -40,9 +40,18 @@ deploy:
   image: docker:stable
   services:
     - docker:dind
+  before_script:
+    - apt-get update && apt-get install -y git
+    - git clone https://git.fhict.nl/I500157/individual-assignment-semester-3-fe ../frontend
   script:
     - ./gradlew assemble
+
     - docker build -t my-backend:latest -f Dockerfile .
+
+    - cd ../frontend/individual-assignment-semester-3-fe
+    - docker build -t my-frontend:latest -f Dockerfile .
+
+    - cd ${CI_PROJECT_DIR}
     - docker-compose -f docker-compose.yml up -d --build
   only:
     - main
