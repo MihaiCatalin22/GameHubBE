@@ -13,15 +13,6 @@ services:
     networks:
       - gamehub-network
 
-  frontend:
-    build:
-      context: ../individual-assignment-semester-3-fe\individual-assignment-semester-3-fe
-      dockerfile: Dockerfile
-    ports:
-      - "5173:80"
-    networks:
-      - gamehub-network
-
   gamehub-staging-db:
     image: mysql:latest
     environment:

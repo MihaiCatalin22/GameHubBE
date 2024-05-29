@@ -36,14 +36,15 @@ sonarqube-check:
     - /^feature\/.*$/
 
 deploy:
-    stage: deploy
-    image: docker:stable
-    services:
-      - docker:dind
-    script:
-      - docker build -t my-backend:latest .
-      - docker-compose -f docker-compose.yml up -d --build
-    only:
-      - main
-      - develop
-      - /^feature\/.*$/
+  stage: deploy
+  image: docker:stable
+  services:
+    - docker:dind
+  script:
+    - ./gradlew assemble
+    - docker build -t my-backend:latest -f Dockerfile .
+    - docker-compose -f docker-compose.yml up -d --build
+  only:
+    - main
+    - develop
+    - /^feature\/.*$/
