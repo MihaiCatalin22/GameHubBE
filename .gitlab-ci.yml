@@ -2,7 +2,7 @@ variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
   DOCKER_DRIVER: overlay2
   DOCKER_BUILDKIT: 1
-  FRONTEND_REPO: "https://git.fhict.nl/I500157/individual-assignment-semester-3-fe.git"
+  FRONTEND_REPO: "git.fhict.nl/I500157/individual-assignment-semester-3-fe.git"
   FRONTEND_REPO_USER: "gitlab+deploy-token-398"
   FRONTEND_REPO_TOKEN: "dvPr17fePz2kybw-JT8Y"
 
