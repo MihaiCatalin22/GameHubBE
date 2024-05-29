@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/purchases")
 @CrossOrigin(origins = "http://localhost:5173")
+@Validated
 public class PurchaseController {
     private final PurchaseService purchaseService;
 

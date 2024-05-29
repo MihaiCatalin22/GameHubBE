@@ -1,6 +1,9 @@
 package com.gamehub.backend.domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,9 +24,12 @@ public class ForumPost {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Title cannot be empty")
+    @Size(max = 100, message = "Title cannot be longer than 100 characters")
     private String title;
 
     @Lob
+    @NotBlank(message = "Content cannot be empty")
     private String content;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -40,6 +46,7 @@ public class ForumPost {
     private Set<Comment> comments = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Category cannot be null")
     private Category category;
 
     @ElementCollection

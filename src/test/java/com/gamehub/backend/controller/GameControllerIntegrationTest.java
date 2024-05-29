@@ -75,6 +75,7 @@ class GameControllerIntegrationTest {
     void createGameTest() throws Exception {
         User adminUser = new User();
         adminUser.setUsername("admin");
+        adminUser.setEmail("admin@mail.com");
         adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
         userRepository.save(adminUser);
 
@@ -96,6 +97,7 @@ class GameControllerIntegrationTest {
     void getGameByIdTest() throws Exception {
         User adminUser = new User();
         adminUser.setUsername("admin");
+        adminUser.setEmail("admin@mail.com");
         adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
         userRepository.save(adminUser);
 
@@ -113,6 +115,7 @@ class GameControllerIntegrationTest {
     void getAllGamesTest() throws Exception {
         User adminUser = new User();
         adminUser.setUsername("admin");
+        adminUser.setEmail("admin@mail.com");
         adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
         userRepository.save(adminUser);
 
@@ -131,6 +134,7 @@ class GameControllerIntegrationTest {
     void updateGameTest() throws Exception {
         User adminUser = new User();
         adminUser.setUsername("admin");
+        adminUser.setEmail("admin@mail.com");
         adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
         userRepository.save(adminUser);
 
@@ -142,13 +146,15 @@ class GameControllerIntegrationTest {
         Game updatedGame = new Game();
         updatedGame.setTitle("Elden Ring Updated");
         updatedGame.setPrice(49.99);
+        updatedGame.setReleaseDate(new Date());
+        updatedGame.setDeveloper("FromSoftware");
+
         mockMvc.perform(put("/games/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedGame)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Elden Ring Updated"))
                 .andExpect(jsonPath("$.price").value(49.99));
-
     }
 
     @Test
@@ -156,6 +162,7 @@ class GameControllerIntegrationTest {
     void deleteGameTest() throws Exception {
         User adminUser = new User();
         adminUser.setUsername("admin");
+        adminUser.setEmail("admin@mail.com");
         adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
         userRepository.save(adminUser);
 

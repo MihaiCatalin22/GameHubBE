@@ -48,6 +48,7 @@ class UserServiceImplTest {
     private UserDTO userDTO;
     private User friend;
     private FriendRelationship friendRelationship;
+
     @BeforeEach
     void setUp() {
         user = new User();
@@ -62,7 +63,8 @@ class UserServiceImplTest {
         userDTO.setId(1L);
         userDTO.setUsername("testUser");
         userDTO.setEmail("test@example.com");
-        userDTO.setPassword("password123");
+        userDTO.setPassword("Password@123");
+        userDTO.setConfirmPassword("Password@123");
         userDTO.setProfilePicture("oldPicture.jpg");
         userDTO.setRole(Collections.singletonList("USER"));
 
@@ -110,12 +112,53 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUser() {
+    void createUser_validData_success() {
+        when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(false);
+        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(user);
+
         UserDTO createdUserDTO = userService.createUser(userDTO);
         assertNotNull(createdUserDTO);
-        verify(userRepository).save(any(User.class));
         assertEquals("dummyToken", createdUserDTO.getJwt());
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void createUser_existingUsername_throwsException() {
+        when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Username already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createUser_existingEmail_throwsException() {
+        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Email already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+
+    @Test
+    void createUser_weakPassword_throwsException() {
+        userDTO.setPassword("weakpass");
+        userDTO.setConfirmPassword("weakpass");
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -160,21 +203,23 @@ class UserServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        userDTO.setPassword("newPassword123");
-        when(passwordEncoder.matches("newPassword123", "hashedPassword")).thenReturn(false);
+        userDTO.setPassword("NewPassword@123");
+        userDTO.setConfirmPassword("NewPassword@123");
+        when(passwordEncoder.matches("NewPassword@123", "hashedPassword")).thenReturn(false);
 
         UserDTO updatedUserDTO1 = userService.updateUser(1L, userDTO);
         assertNotNull(updatedUserDTO1);
         assertEquals(user.getId(), updatedUserDTO1.getId());
-        verify(passwordEncoder).encode("newPassword123");
+        verify(passwordEncoder).encode("NewPassword@123");
         verify(userRepository).save(user);
 
         reset(passwordEncoder, userRepository);
 
-        userDTO.setPassword("hashedPassword");
+        userDTO.setPassword("Password@123");
+        userDTO.setConfirmPassword("Password@123");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
-        when(passwordEncoder.matches("hashedPassword", "hashedPassword")).thenReturn(true);
+        when(passwordEncoder.matches("Password@123", "hashedPassword")).thenReturn(true);
 
         UserDTO updatedUserDTO2 = userService.updateUser(1L, userDTO);
         assertNotNull(updatedUserDTO2);
@@ -182,32 +227,13 @@ class UserServiceImplTest {
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository).save(user);
     }
-
-    @Test
-    void updateUser_noPasswordChange() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        userDTO.setPassword(null);
-        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
-        assertNotNull(updatedUserDTO);
-        assertEquals(user.getId(), updatedUserDTO.getId());
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, times(1)).save(user);
-
-        userDTO.setPassword("");
-        updatedUserDTO = userService.updateUser(1L, userDTO);
-        assertNotNull(updatedUserDTO);
-        assertEquals(user.getId(), updatedUserDTO.getId());
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, times(2)).save(user);
-    }
-
     @Test
     void updateUser_roleChange() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
 
+        userDTO.setPassword("Password@123");
+        userDTO.setConfirmPassword("Password@123");
         userDTO.setRole(Arrays.asList("ADMINISTRATOR", "USER"));
         UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
         assertNotNull(updatedUserDTO);
@@ -219,9 +245,11 @@ class UserServiceImplTest {
     @Test
     void updateUser_notFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
         Exception exception = assertThrows(RuntimeException.class, () -> {
             userService.updateUser(1L, userDTO);
         });
+
         assertEquals("User not found", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
@@ -241,18 +269,18 @@ class UserServiceImplTest {
         assertTrue(result.isPresent());
         assertEquals(userDTO.getUsername(), result.get().getUsername());
         assertEquals("dummyToken", result.get().getJwt());
-        verify(passwordEncoder).matches("password123", "hashedPassword");
+        verify(passwordEncoder).matches("Password@123", "hashedPassword");
     }
 
     @Test
     void loginWithInvalidCredentials() {
         when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("password123", "hashedPassword")).thenReturn(false);
+        when(passwordEncoder.matches("Password@123", "hashedPassword")).thenReturn(false);
 
         Optional<UserDTO> result = userService.login(userDTO);
 
         assertTrue(result.isEmpty());
-        verify(passwordEncoder).matches("password123", "hashedPassword");
+        verify(passwordEncoder).matches("Password@123", "hashedPassword");
     }
 
     @Test
@@ -274,7 +302,7 @@ class UserServiceImplTest {
         });
 
         assertEquals("User not found with id: 1", exception.getMessage());
-        verify(userRepository, never()). save(any(User.class));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -299,6 +327,7 @@ class UserServiceImplTest {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             userService.sendRequest(1L, 2L);
         });
+
         assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
 
         reset(friendRelationshipRepository);
@@ -308,6 +337,7 @@ class UserServiceImplTest {
         exception = assertThrows(IllegalArgumentException.class, () -> {
             userService.sendRequest(1L, 2L);
         });
+
         assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
     }
 
@@ -364,4 +394,5 @@ class UserServiceImplTest {
         verify(friendRelationshipRepository).delete(friendRelationship);
     }
 }
+
 

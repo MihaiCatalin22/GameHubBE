@@ -12,4 +12,5 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 
     @Query("SELECT g FROM Game g WHERE :genres MEMBER OF g.genres AND g.id NOT IN :ownedGameIds")
     List<Game> findRecommendations(@Param("genres")Genre genres, @Param("ownedGameIds") Set<Long> ownedGameIds);
+    boolean existsByTitleAndIdNot(String title, Long id);
 }

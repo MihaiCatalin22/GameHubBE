@@ -2,6 +2,7 @@ package com.gamehub.backend.business.impl;
 
 import com.gamehub.backend.dto.CommentDTO;
 import com.gamehub.backend.domain.ForumPost;
+import com.gamehub.backend.domain.Category;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.domain.Comment;
 import com.gamehub.backend.dto.ForumPostResponse;
@@ -52,6 +53,7 @@ class ForumServiceImplTest {
         forumPost.setAuthor(user);
         forumPost.setTitle("Sample Post");
         forumPost.setContent("Content of the sample post");
+        forumPost.setCategory(Category.GENERAL);
         forumPost.setComments(new HashSet<>());
 
         comment = new Comment();
@@ -79,6 +81,10 @@ class ForumServiceImplTest {
     void createPostWithInvalidUserId() {
         Long invalidUserId = 999L;
         ForumPost postToCreate = new ForumPost();
+        postToCreate.setTitle("Sample Post");
+        postToCreate.setContent("Content of the sample post");
+        postToCreate.setCategory(Category.GENERAL);
+
         when(userRepository.findById(invalidUserId)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
@@ -132,6 +138,7 @@ class ForumServiceImplTest {
         ForumPost updatedPostData = new ForumPost();
         updatedPostData.setTitle("Updated Title");
         updatedPostData.setContent("Updated content.");
+        updatedPostData.setCategory(Category.GENERAL);
         Long userId = 1L;
 
         Mockito.lenient().when(forumPostRepository.findById(1L)).thenReturn(Optional.of(forumPost));

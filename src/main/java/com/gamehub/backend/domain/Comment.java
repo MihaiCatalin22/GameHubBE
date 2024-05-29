@@ -2,6 +2,8 @@ package com.gamehub.backend.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +21,7 @@ public class Comment {
     private Long id;
 
     @Lob
+    @NotBlank(message = "Content cannot be empty")
     private String content;
 
     @ManyToOne

@@ -7,6 +7,7 @@ import com.gamehub.backend.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/notifications")
 @CrossOrigin(origins = "http://localhost:5173", exposedHeaders = "Authorization")
+@Validated
 public class NotificationController {
     private final NotificationService notificationService;
     private final UserRepository userRepository;

@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 @Entity
 @Table(name = "users")
@@ -18,12 +21,22 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "Username must not be empty.")
+    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters.")
     private String username;
+
+    @Email(message = "Email should be valid.")
+    @NotBlank(message = "Email must not be empty.")
     private String email;
+
+    @NotBlank(message = "Password hash must not be empty.")
     private String passwordHash;
+
     @Column(name = "profile_picture")
     private String profilePicture;
 
+    @Size(max = 500, message = "Description must be less than 500 characters.")
     private String description;
 
     @ElementCollection(fetch = FetchType.EAGER)

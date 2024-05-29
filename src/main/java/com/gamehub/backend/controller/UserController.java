@@ -3,31 +3,35 @@ package com.gamehub.backend.controller;
 import com.gamehub.backend.configuration.security.token.JwtUtil;
 import com.gamehub.backend.domain.FriendRelationship;
 import com.gamehub.backend.dto.FriendRequestDTO;
+import com.gamehub.backend.dto.LoginDTO;
 import com.gamehub.backend.dto.UserDTO;
 import com.gamehub.backend.business.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:5173", exposedHeaders = "Authorization")
 @RestController
 @RequestMapping("/users")
+@Validated
 public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
+
     @Autowired
-    public UserController(UserService userService, JwtUtil jwtUtil)
-    {
+    public UserController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.createUser(userDTO));
     }
 
@@ -47,7 +51,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("#id == principal.id")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO userDTO) {
         try {
             return ResponseEntity.ok(userService.updateUser(id, userDTO));
         } catch (RuntimeException e) {
@@ -63,7 +67,11 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> login(@Valid @RequestBody LoginDTO loginDTO) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername(loginDTO.getUsername());
+        userDTO.setPassword(loginDTO.getPassword());
+
         return userService.login(userDTO)
                 .map(dto -> ResponseEntity.ok().header("Authorization", "Bearer " + dto.getJwt()).body(dto))
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
@@ -94,6 +102,7 @@ public class UserController {
         List<FriendRequestDTO> friends = userService.getFriends(userId);
         return ResponseEntity.ok(friends);
     }
+
     @DeleteMapping("/friends/remove/{relationshipId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> removeFriend(@PathVariable Long relationshipId) {

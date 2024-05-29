@@ -36,18 +36,21 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
     }
+
     @Override
     public UserDTO createUser(UserDTO userDTO) {
-        if (!StringUtils.hasText(userDTO.getUsername()) || !StringUtils.hasText(userDTO.getEmail()) || !StringUtils.hasText(userDTO.getPassword())) {
-            throw new IllegalArgumentException("Username, email, and password must not be empty");
-        }
+        validateUserDTO(userDTO);
         if (userRepository.existsByUsername(userDTO.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
+        }
+        if (userRepository.existsByEmail(userDTO.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
         }
         User user = prepareUserEntity(userDTO);
         user = userRepository.save(user);
         return buildUserDTOwithJwt(user);
     }
+
     @Override
     public Optional<UserDTO> getUserById(Long id) {
         return Optional.ofNullable(userRepository.findById(id)
@@ -61,6 +64,7 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::toDto)
                 .toList();
     }
+
     @Override
     public UserDTO updateUser(Long id, UserDTO userDTO) {
         return userRepository.findById(id)
@@ -79,6 +83,7 @@ public class UserServiceImpl implements UserService {
                     return mapToDto(existingUser);
                 }).orElseThrow(() -> new RuntimeException("User not found"));
     }
+
     @Override
     public void updateUserProfilePicture(Long userId, String fileName) {
         userRepository.findById(userId)
@@ -87,11 +92,11 @@ public class UserServiceImpl implements UserService {
                     return userRepository.save(user);
                 }).orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
     }
+
     @Override
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
-
 
     private User prepareUserEntity(UserDTO userDTO) {
         User user = userMapper.toEntity(userDTO);
@@ -103,6 +108,7 @@ public class UserServiceImpl implements UserService {
         }
         return user;
     }
+
     private UserDTO buildUserDTOwithJwt(User user) {
         UserDTO dto = userMapper.toDto(user);
         dto.setJwt(jwtUtil.generateToken(dto.getUsername()));
@@ -190,5 +196,23 @@ public class UserServiceImpl implements UserService {
         FriendRelationship relationship = friendRelationshipRepository.findById(relationshipId)
                 .orElseThrow(() -> new EntityNotFoundException("Friend relationship not found with id " + relationshipId));
         friendRelationshipRepository.delete(relationship);
+    }
+
+    private void validateUserDTO(UserDTO userDTO) {
+        if (!StringUtils.hasText(userDTO.getUsername()) || !StringUtils.hasText(userDTO.getEmail()) || !StringUtils.hasText(userDTO.getPassword())) {
+            throw new IllegalArgumentException("Username, email, and password must not be empty");
+        }
+        if (userRepository.existsByUsername(userDTO.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        if (userRepository.existsByEmail(userDTO.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        if (userDTO.getPassword().length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long");
+        }
+        if (!userDTO.getPassword().matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#\\$%\\^&\\*])(?=\\S+$).{8,}$")) {
+            throw new IllegalArgumentException("Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character");
+        }
     }
 }

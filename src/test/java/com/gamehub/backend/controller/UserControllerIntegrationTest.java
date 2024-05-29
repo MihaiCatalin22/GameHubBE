@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamehub.backend.configuration.security.CustomUserDetails;
 import com.gamehub.backend.domain.FriendRelationship;
 import com.gamehub.backend.domain.User;
+import com.gamehub.backend.dto.UserDTO;
 import com.gamehub.backend.persistence.FriendRelationshipRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import jakarta.transaction.Transactional;
@@ -91,7 +92,8 @@ class UserControllerIntegrationTest {
         Map<String, Object> newUser = new HashMap<>();
         newUser.put("username", "newUser");
         newUser.put("email", "newuser@example.com");
-        newUser.put("password", "securePassword123");
+        newUser.put("password", "securePassword123@");
+        newUser.put("confirmPassword", "securePassword123@");
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -129,7 +131,7 @@ class UserControllerIntegrationTest {
         existingUser.setUsername("originalUser");
         existingUser.setEmail("original@example.com");
         existingUser.setDescription("Original description");
-        existingUser.setPasswordHash("testPassword");
+        existingUser.setPasswordHash(passwordEncoder.encode("testPassword"));
 
         existingUser = userRepository.save(existingUser);
 
@@ -141,14 +143,16 @@ class UserControllerIntegrationTest {
                 customUserDetails, null, customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        existingUser.setUsername("updatedUser");
-        existingUser.setEmail("updated@example.com");
-        existingUser.setDescription("Updated description");
-        existingUser.setPasswordHash("updatedPassword");
+        UserDTO updatedUser = new UserDTO();
+        updatedUser.setUsername("updatedUser");
+        updatedUser.setEmail("updated@example.com");
+        updatedUser.setDescription("Updated description");
+        updatedUser.setPassword("newUpdatedPassword#");
+        updatedUser.setConfirmPassword("newUpdatedPassword#");
 
         mockMvc.perform(put("/users/" + existingUser.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(existingUser)))
+                        .content(objectMapper.writeValueAsString(updatedUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("updatedUser"))
                 .andExpect(jsonPath("$.email").value("updated@example.com"))
@@ -163,9 +167,10 @@ class UserControllerIntegrationTest {
 
     @Test
     void loginUserTest() throws Exception {
-        String rawPassword = "password123";
+        String rawPassword = "Password123@";
         User newUser = new User();
         newUser.setUsername("newUser");
+        newUser.setEmail("email@test.com");
         newUser.setPasswordHash(passwordEncoder.encode(rawPassword));
         userRepository.save(newUser);
 

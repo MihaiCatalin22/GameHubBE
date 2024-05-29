@@ -71,6 +71,7 @@ class ForumControllerIntegrationTest {
 
         testUser = new User();
         testUser.setUsername("testUser");
+        testUser.setEmail("mail@mail.com");
         testUser.setPasswordHash(passwordEncoder.encode("securePass123"));
         userRepository.save(testUser);
 
@@ -90,6 +91,7 @@ class ForumControllerIntegrationTest {
     void createForumPostTest() throws Exception {
         User testUser = new User();
         testUser.setUsername("testUser");
+        testUser.setEmail("mail@mail.com");
         testUser.setPasswordHash(passwordEncoder.encode("securePass123"));
         userRepository.save(testUser);
 
@@ -119,6 +121,7 @@ class ForumControllerIntegrationTest {
         post.setTitle("Existing Post");
         post.setContent("Content of the existing post.");
         post.setAuthor(testUser);
+        post.setCategory(Category.GENERAL);
         forumPostRepository.save(post);
 
         mockMvc.perform(get("/forum/posts/" + post.getId())
@@ -133,12 +136,14 @@ class ForumControllerIntegrationTest {
         post1.setTitle("First Post");
         post1.setContent("First post content.");
         post1.setAuthor(testUser);
+        post1.setCategory(Category.GENERAL);
         forumPostRepository.save(post1);
 
         ForumPost post2 = new ForumPost();
         post2.setTitle("Second Post");
         post2.setContent("Second post content.");
         post2.setAuthor(testUser);
+        post2.setCategory(Category.GENERAL);
         forumPostRepository.save(post2);
 
         mockMvc.perform(get("/forum/posts")
@@ -151,6 +156,7 @@ class ForumControllerIntegrationTest {
     void updateForumPostTest() throws Exception {
         User testUser = new User();
         testUser.setUsername("testUser");
+        testUser.setEmail("mail@mail.com");
         testUser.setPasswordHash(passwordEncoder.encode("securePass123"));
         testUser = userRepository.save(testUser);
 
@@ -186,6 +192,7 @@ class ForumControllerIntegrationTest {
     void deleteForumPostTest() throws Exception {
         User testUser = new User();
         testUser.setUsername("testAdmin");
+        testUser.setEmail("mail@mail.com");
         testUser.setPasswordHash(passwordEncoder.encode("securePassword"));
         userRepository.save(testUser);
 
@@ -201,6 +208,7 @@ class ForumControllerIntegrationTest {
         post.setTitle("To be deleted");
         post.setContent("This post will be deleted.");
         post.setAuthor(testUser);
+        post.setCategory(Category.GENERAL);
         post = forumPostRepository.save(post);
 
         mockMvc.perform(delete("/forum/posts/" + post.getId())
@@ -215,6 +223,7 @@ class ForumControllerIntegrationTest {
     void likeAndUnlikePostTest() throws Exception {
         User testUser = new User();
         testUser.setUsername("testUser");
+        testUser.setEmail("mail@mail.com");
         testUser.setPasswordHash(passwordEncoder.encode("password"));
         userRepository.save(testUser);
 
@@ -230,6 +239,7 @@ class ForumControllerIntegrationTest {
         post.setTitle("Like this post");
         post.setContent("You should like and then unlike this post.");
         post.setAuthor(testUser);
+        post.setCategory(Category.GENERAL);
         post = forumPostRepository.save(post);
 
         mockMvc.perform(post("/forum/posts/" + post.getId() + "/like")
@@ -249,6 +259,7 @@ class ForumControllerIntegrationTest {
     void addCommentToPostTest() throws Exception {
         User testUser = new User();
         testUser.setUsername("testUser");
+        testUser.setEmail("mail@mail.com");
         testUser.setPasswordHash(passwordEncoder.encode("securePass123"));
         testUser = userRepository.save(testUser);
 
@@ -264,11 +275,13 @@ class ForumControllerIntegrationTest {
         post.setTitle("Post for commenting");
         post.setContent("Post content here.");
         post.setAuthor(testUser);
+        post.setCategory(Category.GENERAL);
         post = forumPostRepository.save(post);
 
         Comment newComment = new Comment();
         newComment.setContent("This is a comment.");
         newComment.setAuthor(testUser);
+        newComment.setForumPost(post);
 
         mockMvc.perform(post("/forum/posts/" + post.getId() + "/comments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -283,6 +296,7 @@ class ForumControllerIntegrationTest {
     void getPostsByUserIdTest() throws Exception {
         User testUser = new User();
         testUser.setUsername("testUser");
+        testUser.setEmail("mail@mail.com");
         testUser.setPasswordHash(passwordEncoder.encode("securePass123"));
         testUser = userRepository.save(testUser);
 
@@ -290,12 +304,14 @@ class ForumControllerIntegrationTest {
         post1.setTitle("User's First Post");
         post1.setContent("Content of user's first post.");
         post1.setAuthor(testUser);
+        post1.setCategory(Category.GENERAL);
         forumPostRepository.save(post1);
 
         ForumPost post2 = new ForumPost();
         post2.setTitle("User's Second Post");
         post2.setContent("Content of user's second post.");
         post2.setAuthor(testUser);
+        post2.setCategory(Category.GENERAL);
         forumPostRepository.save(post2);
 
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));

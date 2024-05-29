@@ -100,7 +100,8 @@ class EventServiceImplTest {
         Event updatedEventInfo = new Event();
         updatedEventInfo.setName("Updated Event Name");
         updatedEventInfo.setDescription("Updated description");
-
+        updatedEventInfo.setStartDate(new Date());
+        updatedEventInfo.setEndDate(new Date());
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -116,8 +117,10 @@ class EventServiceImplTest {
     @Test
     void updateNonexistentEvent() {
         Event updatedEventInfo = new Event();
+        updatedEventInfo.setStartDate(new Date());
+        updatedEventInfo.setEndDate(new Date());
 
-        when(eventRepository.findById(999L)).thenReturn(Optional.empty());
+        lenient().when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             eventService.updateEvent(999L, updatedEventInfo);

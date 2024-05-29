@@ -12,6 +12,7 @@ import com.gamehub.backend.persistence.CommentRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class ForumServiceImpl implements ForumService {
     private final UserRepository userRepository;
 
     @Autowired
-    public ForumServiceImpl(ForumPostRepository forumPostRepository, CommentRepository commentRepository, UserRepository userRepository){
+    public ForumServiceImpl(ForumPostRepository forumPostRepository, CommentRepository commentRepository, UserRepository userRepository) {
         this.forumPostRepository = forumPostRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
@@ -32,6 +33,7 @@ public class ForumServiceImpl implements ForumService {
 
     @Override
     public ForumPostResponse createPost(ForumPost post, Long userId) {
+        validateForumPost(post);
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         post.setAuthor(user);
         ForumPost createdPost = forumPostRepository.save(post);
@@ -50,6 +52,7 @@ public class ForumServiceImpl implements ForumService {
 
     @Override
     public ForumPostResponse updatePost(Long id, ForumPost post, Long userId) {
+        validateForumPost(post);
         ForumPost existingPost = forumPostRepository.findById(id).orElseThrow(() -> new RuntimeException("Forum post not found"));
         existingPost.setTitle(post.getTitle());
         existingPost.setContent(post.getContent());
@@ -75,6 +78,7 @@ public class ForumServiceImpl implements ForumService {
 
     @Override
     public CommentDTO commentOnPost(Long postId, Comment comment, Long userId) {
+        validateComment(comment);
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         ForumPost post = forumPostRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
         comment.setAuthor(user);
@@ -88,13 +92,13 @@ public class ForumServiceImpl implements ForumService {
         Set<Comment> comments = forumPostRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found")).getComments();
         return comments.stream().map(this::convertToCommentDTO).toList();
     }
+
     @Override
     public List<ForumPostResponse> getPostsByUserId(Long userId) {
         List<ForumPost> posts = forumPostRepository.findByAuthorId(userId);
-        return posts.stream()
-                .map(this::toForumPostResponse)
-                .toList();
+        return posts.stream().map(this::toForumPostResponse).toList();
     }
+
     @Override
     public void deleteComment(Long postId, Long commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new RuntimeException("Comment not found"));
@@ -102,6 +106,24 @@ public class ForumServiceImpl implements ForumService {
             throw new RuntimeException("Comment does not belong to the specified post");
         }
         commentRepository.delete(comment);
+    }
+
+    private void validateForumPost(ForumPost post) {
+        if (!StringUtils.hasText(post.getTitle())) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
+        if (!StringUtils.hasText(post.getContent())) {
+            throw new IllegalArgumentException("Content cannot be empty");
+        }
+        if (post.getCategory() == null) {
+            throw new IllegalArgumentException("Category cannot be null");
+        }
+    }
+
+    private void validateComment(Comment comment) {
+        if (!StringUtils.hasText(comment.getContent())) {
+            throw new IllegalArgumentException("Content cannot be empty");
+        }
     }
 
     private ForumPostResponse toForumPostResponse(ForumPost post) {

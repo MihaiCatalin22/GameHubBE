@@ -154,7 +154,8 @@ class GameServiceImplTest {
         updatedGameData.setTitle("Updated Title");
         updatedGameData.setDescription("Updated Description");
         updatedGameData.setPrice(19.99);
-
+        updatedGameData.setReleaseDate(new Date());
+        updatedGameData.setDeveloper("New developer");
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(gameRepository.save(any(Game.class))).thenReturn(game);
 
@@ -173,7 +174,7 @@ class GameServiceImplTest {
 
         updatedData.setTitle("Nonexistent Game");
 
-        when(gameRepository.findById(nonexistentGameId)).thenReturn(Optional.empty());
+        lenient().when(gameRepository.findById(nonexistentGameId)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             gameService.updateGame(nonexistentGameId, updatedData);

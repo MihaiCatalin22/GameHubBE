@@ -12,14 +12,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 @RestController
 @RequestMapping("/events")
+@Validated
 public class EventController {
     private final EventService eventService;
     private final NotificationService notificationService;
@@ -36,7 +39,7 @@ public class EventController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER')")
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
+    public ResponseEntity<Event> createEvent(@Valid @RequestBody Event event) {
         Event createdEvent = eventService.createEvent(event);
         userRepository.findAll().forEach(user -> {
             Notification notification = new Notification();
@@ -78,7 +81,7 @@ public class EventController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'COMMUNITY_MANAGER')")
-    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event eventDetails) {
+    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @Valid @RequestBody Event eventDetails) {
         Event updatedEvent = eventService.updateEvent(id, eventDetails);
         return ResponseEntity.ok(updatedEvent);
     }
@@ -89,7 +92,6 @@ public class EventController {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }
-
 
     @PostMapping("/{eventId}/participants")
     @PreAuthorize("#payload['userId'] == authentication.principal.id")

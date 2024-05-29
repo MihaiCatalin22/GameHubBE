@@ -57,6 +57,7 @@ class EventControllerIntegrationTest {
     void setup() {
         adminUser = new User();
         adminUser.setUsername("admin");
+        adminUser.setEmail("email@email.com");
         adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
         userRepository.save(adminUser);
 
@@ -67,11 +68,13 @@ class EventControllerIntegrationTest {
 
     @Test
     void createEventTest() throws Exception {
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000);
+
         Event event = new Event();
         event.setName("Spring Festival");
         event.setDescription("A festival to welcome spring");
-        event.setStartDate(new Date());
-        event.setEndDate(new Date());
+        event.setStartDate(futureDate);
+        event.setEndDate(futureDate);
 
         mockMvc.perform(post("/events")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,11 +85,12 @@ class EventControllerIntegrationTest {
 
     @Test
     void getEventByIdTest() throws Exception {
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000);
         Event sampleEvent = new Event();
         sampleEvent.setName("Spring Festival");
         sampleEvent.setDescription("A fun spring event for the community.");
-        sampleEvent.setStartDate(new Date());
-        sampleEvent.setEndDate(new Date());
+        sampleEvent.setStartDate(futureDate);
+        sampleEvent.setEndDate(futureDate);
 
         eventRepository.save(sampleEvent);
 
@@ -97,11 +101,12 @@ class EventControllerIntegrationTest {
 
     @Test
     void getAllEventsTest() throws Exception {
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000);
         Event sampleEvent = new Event();
         sampleEvent.setName("Spring Festival");
         sampleEvent.setDescription("A fun spring event for the community.");
-        sampleEvent.setStartDate(new Date());
-        sampleEvent.setEndDate(new Date());
+        sampleEvent.setStartDate(futureDate);
+        sampleEvent.setEndDate(futureDate);
 
         eventRepository.save(sampleEvent);
 
@@ -112,16 +117,20 @@ class EventControllerIntegrationTest {
 
     @Test
     void updateEventTest() throws Exception {
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000);
         Event sampleEvent = new Event();
         sampleEvent.setName("Spring Festival");
         sampleEvent.setDescription("A fun spring event for the community.");
-        sampleEvent.setStartDate(new Date());
-        sampleEvent.setEndDate(new Date());
+        sampleEvent.setStartDate(futureDate);
+        sampleEvent.setEndDate(futureDate);
 
         Event savedEvent = eventRepository.save(sampleEvent);
 
         Event updatedEvent = new Event();
         updatedEvent.setName("Summer Festival");
+        updatedEvent.setDescription("A fun summer event for the community.");
+        updatedEvent.setStartDate(new Date(futureDate.getTime() + 86400000));
+        updatedEvent.setEndDate(new Date(futureDate.getTime() + 172800000));
 
         mockMvc.perform(put("/events/{id}", savedEvent.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -138,16 +147,18 @@ class EventControllerIntegrationTest {
 
     @Test
     void addParticipantToEventTest() throws Exception {
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000);
         Event sampleEvent = new Event();
         sampleEvent.setName("Spring Festival");
         sampleEvent.setDescription("A fun spring event for the community.");
-        sampleEvent.setStartDate(new Date());
-        sampleEvent.setEndDate(new Date());
+        sampleEvent.setStartDate(futureDate);
+        sampleEvent.setEndDate(futureDate);
 
         Event savedEvent = eventRepository.save(sampleEvent);
 
         User testUser = new User();
         testUser.setUsername("adminUser");
+        testUser.setEmail("email@email.com");
         testUser.setPasswordHash(passwordEncoder.encode("password"));
         testUser = userRepository.save(testUser);
 
@@ -167,11 +178,12 @@ class EventControllerIntegrationTest {
 
     @Test
     void removeParticipantFromEventTest() throws Exception {
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000);
         Event sampleEvent = new Event();
         sampleEvent.setName("Spring Festival");
         sampleEvent.setDescription("A fun spring event for the community.");
-        sampleEvent.setStartDate(new Date());
-        sampleEvent.setEndDate(new Date());
+        sampleEvent.setStartDate(futureDate);
+        sampleEvent.setEndDate(futureDate);
 
         Event savedEvent = eventRepository.save(sampleEvent);
 
@@ -181,11 +193,12 @@ class EventControllerIntegrationTest {
 
     @Test
     void getParticipantsOfEventTest() throws Exception {
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000);
         Event sampleEvent = new Event();
         sampleEvent.setName("Spring Festival");
         sampleEvent.setDescription("A fun spring event for the community.");
-        sampleEvent.setStartDate(new Date());
-        sampleEvent.setEndDate(new Date());
+        sampleEvent.setStartDate(futureDate);
+        sampleEvent.setEndDate(futureDate);
 
         Event savedEvent = eventRepository.save(sampleEvent);
 

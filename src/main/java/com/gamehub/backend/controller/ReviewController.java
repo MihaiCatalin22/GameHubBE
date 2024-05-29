@@ -6,13 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/reviews")
+@Validated
 public class ReviewController {
     private final ReviewService reviewService;
 
@@ -23,7 +26,7 @@ public class ReviewController {
 
     @PostMapping("/games/{gameId}/review")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ReviewDTO> addReviewToGame(@PathVariable Long gameId, @RequestBody ReviewDTO reviewDto, @RequestParam Long userId) {
+    public ResponseEntity<ReviewDTO> addReviewToGame(@PathVariable Long gameId, @Valid @RequestBody ReviewDTO reviewDto, @RequestParam Long userId) {
         try {
             ReviewDTO createdReview = reviewService.createReview(reviewDto, gameId, userId);
             return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
@@ -64,7 +67,7 @@ public class ReviewController {
 
     @PutMapping("/{reviewId}")
     @PreAuthorize("authentication.principal.id == #reviewDto.author.id or hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<ReviewDTO> updateReview(@PathVariable Long reviewId, @RequestBody ReviewDTO reviewDto) {
+    public ResponseEntity<ReviewDTO> updateReview(@PathVariable Long reviewId, @Valid @RequestBody ReviewDTO reviewDto) {
         ReviewDTO updatedReview = reviewService.updateReview(reviewId, reviewDto);
         return ResponseEntity.ok(updatedReview);
     }

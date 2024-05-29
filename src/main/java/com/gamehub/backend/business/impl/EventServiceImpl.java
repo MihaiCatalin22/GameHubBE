@@ -7,6 +7,7 @@ import com.gamehub.backend.persistence.EventRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +22,12 @@ public class EventServiceImpl implements EventService {
     @Autowired
     public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository) {
         this.eventRepository = eventRepository;
-    this.userRepository = userRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public Event createEvent(Event event) {
+        validateEvent(event);
         return eventRepository.save(event);
     }
 
@@ -41,6 +43,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Event updateEvent(Long id, Event eventDetails) {
+        validateEvent(eventDetails);
         return eventRepository.findById(id).map(event -> {
             event.setName(eventDetails.getName());
             event.setDescription(eventDetails.getDescription());
@@ -81,5 +84,17 @@ public class EventServiceImpl implements EventService {
     public Set<User> getParticipants(Long eventId) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
         return event.getParticipants();
+    }
+
+    private void validateEvent(Event event) {
+        if (!StringUtils.hasText(event.getName())) {
+            throw new IllegalArgumentException("Event name cannot be empty");
+        }
+        if (event.getStartDate() == null || event.getEndDate() == null) {
+            throw new IllegalArgumentException("Event dates cannot be null");
+        }
+        if (event.getStartDate().after(event.getEndDate())) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
     }
 }

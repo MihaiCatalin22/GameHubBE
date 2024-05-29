@@ -9,12 +9,16 @@ import com.gamehub.backend.persistence.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import java.util.List;
 import java.util.Optional;
+
 @Service
 public class GameServiceImpl implements GameService {
     private final GameRepository gameRepository;
     private final UserRepository userRepository;
+
     @Autowired
     public GameServiceImpl(GameRepository gameRepository, UserRepository userRepository) {
         this.gameRepository = gameRepository;
@@ -23,9 +27,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Game createGame(Game game) {
-        if (game.getTitle() == null || game.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Game title cannot be empty");
-        }
+        validateGame(game, null);
         return gameRepository.save(game);
     }
 
@@ -38,6 +40,7 @@ public class GameServiceImpl implements GameService {
     public List<Game> getAllGames() {
         return gameRepository.findAll();
     }
+
     @Override
     public List<Game> getGamesByUserId(Long userId) {
         User user = userRepository.findById(userId)
@@ -47,8 +50,10 @@ public class GameServiceImpl implements GameService {
                 .map(Purchase::getGame)
                 .toList();
     }
+
     @Override
     public Game updateGame(Long id, Game updatedGame) {
+        validateGame(updatedGame, id);
         return gameRepository.findById(id)
                 .map(game -> {
                     game.setTitle(updatedGame.getTitle());
@@ -65,5 +70,23 @@ public class GameServiceImpl implements GameService {
     @Override
     public void deleteGame(Long id) {
         gameRepository.deleteById(id);
+    }
+
+    private void validateGame(Game game, Long gameId) {
+        if (!StringUtils.hasText(game.getTitle())) {
+            throw new IllegalArgumentException("Game title cannot be empty");
+        }
+        if (gameRepository.existsByTitleAndIdNot(game.getTitle(), gameId)) {
+            throw new IllegalArgumentException("Game title already exists");
+        }
+        if (game.getReleaseDate() == null) {
+            throw new IllegalArgumentException("Release date cannot be null");
+        }
+        if (!StringUtils.hasText(game.getDeveloper())) {
+            throw new IllegalArgumentException("Developer cannot be empty");
+        }
+        if (game.getPrice() != null && game.getPrice() <= 0) {
+            throw new IllegalArgumentException("Price must be positive");
+        }
     }
 }

@@ -6,12 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
+
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/games")
+@Validated
 public class GameController {
     private final GameService gameService;
 
@@ -22,7 +26,7 @@ public class GameController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<Game> createGame(@RequestBody Game game) {
+    public ResponseEntity<Game> createGame(@Valid @RequestBody Game game) {
         Game createdGame = gameService.createGame(game);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
     }
@@ -33,10 +37,12 @@ public class GameController {
                 .map(game -> ResponseEntity.ok().body(game))
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @GetMapping("/user/{userId}")
     public List<Game> getGamesByUserId(@PathVariable Long userId) {
         return gameService.getGamesByUserId(userId);
     }
+
     @GetMapping
     public ResponseEntity<List<Game>> getAllGames() {
         List<Game> games = gameService.getAllGames();
@@ -45,7 +51,7 @@ public class GameController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMINISTRATOR')")
-    public ResponseEntity<Game> updateGame(@PathVariable Long id, @RequestBody Game game) {
+    public ResponseEntity<Game> updateGame(@PathVariable Long id, @Valid @RequestBody Game game) {
         try {
             Game updatedGame = gameService.updateGame(id, game);
             return new ResponseEntity<>(updatedGame, HttpStatus.OK);

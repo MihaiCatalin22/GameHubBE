@@ -3,6 +3,10 @@ package com.gamehub.backend.domain;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,9 +24,12 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Title cannot be empty")
+    @Size(max = 100, message = "Title cannot be longer than 100 characters")
     private String title;
 
     @Lob
+    @Size(max = 1500, message = "Description cannot be longer than 1500 characters")
     private String description;
 
     @ElementCollection(targetClass = Genre.class, fetch = FetchType.EAGER)
@@ -32,10 +39,13 @@ public class Game {
     private Set<Genre> genres = new HashSet<>();
 
     @Temporal(TemporalType.DATE)
+    @NotNull(message = "Release date cannot be null")
     private Date releaseDate;
 
+    @NotBlank(message = "Developer cannot be empty")
     private String developer;
 
+    @Positive(message = "Price must be positive")
     private Double price;
 
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)

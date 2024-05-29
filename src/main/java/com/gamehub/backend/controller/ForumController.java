@@ -11,13 +11,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/forum")
+@Validated
 public class ForumController {
     private final ForumService forumService;
 
@@ -28,7 +31,7 @@ public class ForumController {
 
     @PostMapping("/posts")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ForumPostResponse> createPost(@RequestBody ForumPost post, @AuthenticationPrincipal CustomUserDetails currentUser) {
+    public ResponseEntity<ForumPostResponse> createPost(@Valid @RequestBody ForumPost post, @AuthenticationPrincipal CustomUserDetails currentUser) {
         if (currentUser == null) {
             throw new IllegalArgumentException("User details not found");
         }
@@ -46,10 +49,11 @@ public class ForumController {
 
     @GetMapping("/posts")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ForumPostResponse>> getAllPosts(){
+    public ResponseEntity<List<ForumPostResponse>> getAllPosts() {
         List<ForumPostResponse> posts = forumService.getAllPosts();
         return new ResponseEntity<>(posts, HttpStatus.OK);
     }
+
     @GetMapping("/posts/user/{userId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ForumPostResponse>> getPostsByUserId(@PathVariable Long userId) {
@@ -59,9 +63,10 @@ public class ForumController {
         }
         return ResponseEntity.ok(posts);
     }
+
     @PutMapping("/posts/{id}")
     @PreAuthorize("hasRole('ADMINISTRATOR') or #post.author.id == principal.id")
-    public ResponseEntity<ForumPostResponse> updatePost(@PathVariable Long id, @RequestBody ForumPost post, @AuthenticationPrincipal CustomUserDetails currentUser) {
+    public ResponseEntity<ForumPostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody ForumPost post, @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
             ForumPostResponse updatedPost = forumService.updatePost(id, post, currentUser.getId());
             return ResponseEntity.ok(updatedPost);
@@ -90,7 +95,7 @@ public class ForumController {
 
     @PostMapping("/posts/{postId}/comments")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommentDTO> addCommentToPost(@PathVariable Long postId, @RequestBody Comment comment, @AuthenticationPrincipal CustomUserDetails currentUser) {
+    public ResponseEntity<CommentDTO> addCommentToPost(@PathVariable Long postId, @Valid @RequestBody Comment comment, @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
             CommentDTO createdComment = forumService.commentOnPost(postId, comment, currentUser.getId());
             return new ResponseEntity<>(createdComment, HttpStatus.CREATED);
@@ -117,4 +122,3 @@ public class ForumController {
         }
     }
 }
-

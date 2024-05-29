@@ -76,13 +76,7 @@ class ReviewServiceImplTest {
         verify(reviewRepository).save(any(Review.class));
     }
 
-    @Test
-    void createReviewWithNullReviewShouldThrow() {
-        Long userId = user.getId();
-        Long gameId = game.getId();
 
-        assertThrows(IllegalArgumentException.class, () -> reviewService.createReview(null, userId, gameId));
-    }
 
     @Test
     void getReviewByIdFound() {
