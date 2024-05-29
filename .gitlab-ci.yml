@@ -44,7 +44,7 @@ deploy:
   services:
     - docker:dind
   before_script:
-    - if [ -d "../frontend" ]; then rm -rf ../frontend; fi
+    - if (Test-Path ../frontend) { Remove-Item -Recurse -Force ../frontend }
     - git clone https://${FRONTEND_REPO_USER}:${FRONTEND_REPO_TOKEN}@${FRONTEND_REPO} ../frontend
   script:
     - ./gradlew assemble
