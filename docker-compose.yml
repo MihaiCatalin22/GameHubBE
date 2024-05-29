@@ -31,7 +31,12 @@ services:
       - "3369:3306"
     networks:
       - gamehub-network
+    volumes:
+      - gamehub-db-data:/var/lib/mysql
 
 networks:
   gamehub-network:
     external: true
+
+volumes:
+  gamehub-db-data:

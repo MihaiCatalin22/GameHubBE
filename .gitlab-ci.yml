@@ -1,20 +1,37 @@
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  DOCKER_DRIVER: overlay2
+  DOCKER_BUILDKIT: 1
 
 stages:
   - build
   - test
   - sonarqube-check
+  - deploy
 
-build:
+build-backend:
   stage: build
   script:
-  - ./gradlew assemble
+    - ./gradlew assemble
+  artifacts:
+    paths:
+      - build/libs/
+
+build-frontend:
+  stage: build
+  image: node:14
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
 
 test:
   stage: test
   script:
-  - ./gradlew test
+    - ./gradlew test
 
 sonarqube-check:
   stage: sonarqube-check
@@ -32,3 +49,16 @@ sonarqube-check:
     - main
     - develop
 
+deploy:
+  stage: deploy
+  image: docker:stable
+  services:
+    - docker:dind
+  script:
+    - docker build -t my-backend:latest .
+    - docker build -t my-frontend:latest -f frontend/Dockerfile .
+    - docker-compose -f docker-compose.yml up -d --build
+  only:
+    - main
+    - develop
+    - /^feature\/.*$/
