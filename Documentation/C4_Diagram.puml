@@ -1,5 +1,6 @@
 @startuml GameHubPurchaseAndRecommendationLayer
 
+' Define packages for logical grouping
 package "Domain Models" {
     class Game {
         -Long id
@@ -25,11 +26,26 @@ package "Domain Models" {
         -Long id
         -String username
         -String email
+        -String passwordHash
+        -String profilePicture
+        -String description
+        -List<Role> roles
+        -List<Review> reviews
         -List<Purchase> purchases
+        -List<FriendRelationship> friendRelationships
     }
 
     enum Genre {
         ACTION, ADVENTURE, RPG, ...
+    }
+
+    class Review {
+        -Long id
+        -String content
+        -User user
+        -Game game
+        -Date reviewDate
+        -int rating
     }
 }
 
@@ -51,6 +67,10 @@ package "Controllers" {
     class RecommendationController {
         +getRecommendations(Long) : ResponseEntity<List<Game>>
     }
+
+    class AdminController {
+        +getSalesStatistics(String, int) : ResponseEntity<List<GamesSalesStatisticsDTO>>
+    }
 }
 
 package "Services" {
@@ -66,24 +86,26 @@ package "Services" {
     interface PurchaseService {
         +purchaseGame(Long, Long) : Purchase
         +getPurchases(Long, Date, Double, Double) : List<PurchaseDTO>
+        +checkOwnership(Long, Long) : boolean
+        +getSalesStatistics(String, int) : List<GamesSalesStatisticsDTO>
     }
 
     interface RecommendationService {
         +getRecommendationsForUser(Long) : List<Game>
     }
 
-    class GameServiceImpl {
+    class GameServiceImpl implements GameService {
         -GameRepository gameRepository
         -UserRepository userRepository
     }
 
-    class PurchaseServiceImpl {
+    class PurchaseServiceImpl implements PurchaseService {
         -PurchaseRepository purchaseRepository
         -UserRepository userRepository
         -GameRepository gameRepository
     }
 
-    class RecommendationServiceImpl {
+    class RecommendationServiceImpl implements RecommendationService {
         -PurchaseRepository purchaseRepository
         -GameRepository gameRepository
     }
@@ -92,6 +114,7 @@ package "Services" {
 package "Repositories" {
     interface GameRepository {
         +findRecommendations(Genre, Set<Long>) : List<Game>
+        +existsByTitleAndIdNot(String, Long) : boolean
     }
 
     interface PurchaseRepository {
@@ -100,16 +123,23 @@ package "Repositories" {
         +findByUserIdAndPurchaseDateAfterAndAmountLessThan(Long, Date, Double) : List<Purchase>
         +findByUserIdAndPurchaseDateAfterAndAmountBetween(Long, Date, Double, Double) : List<Purchase>
         +findByUserId(Long) : List<Purchase>
+        +existsByUserIdAndGameId(Long, Long) : boolean
+        +findGameSalesStatisticsByTitleAndDateRange(String, Date, Date) : List<Object[]>
     }
 
     interface UserRepository {
         +findById(Long) : Optional<User>
+        +findByUsername(String) : Optional<User>
+        +existsByUsername(String) : boolean
+        +existsByEmail(String) : boolean
     }
 }
 
 GameController ..> GameService : uses
 PurchaseController ..> PurchaseService : uses
 RecommendationController ..> RecommendationService : uses
+AdminController ..> PurchaseService : uses
+
 
 GameServiceImpl ..> GameRepository : uses
 GameServiceImpl ..> UserRepository : uses

@@ -16,6 +16,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     Component(fileStorageController, "File Storage Controller", "Spring MVC Rest Controller", "Handles file uploads and retrievals.")
     Component(purchaseController, "Purchase Controller", "Spring MVC Rest Controller", "Handles transactions and purchases.")
     Component(recommendationController, "Recommendation Controller", "Spring MVC Rest Controller", "Provides game recommendations based on user preferences.")
+    Component(adminController, "Admin Controller", "Spring MVC Rest Controller", "Handles administrative tasks.")
+    Component(chatController, "Chat Controller", "Spring MVC Rest Controller", "Handles chat operations.")
+    Component(notificationController, "Notification Controller", "Spring MVC Rest Controller", "Handles notifications.")
 
     Component(categoryService, "Category Service", "Spring Service", "Handles operations related to categories.")
     Component(genreService, "Genre Service", "Spring Service", "Handles operations related to genres.")
@@ -27,6 +30,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     Component(fileStorageService, "File Storage Service", "Spring Service", "Manages file storage operations.")
     Component(purchaseService, "Purchase Service", "Spring Service", "Processes payments and manages transaction records.")
     Component(recommendationService, "Recommendation Service", "Spring Service", "Analyzes user data to provide personalized game recommendations.")
+    Component(chatMessageService, "Chat Message Service", "Spring Service", "Handles chat message operations.")
+    Component(notificationService, "Notification Service", "Spring Service", "Handles notification operations.")
+
 
     ComponentDb(categoryRepository, "Category Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(genreRepository, "Genre Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
@@ -37,6 +43,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     ComponentDb(eventRepository, "Event Repository", "JPA Repository", "Provides functionality to read and write to the persistent storage.")
     ComponentDb(purchaseRepository, "Purchase Repository", "JPA Repository", "Stores transaction and purchase details.")
     ComponentDb(recommendationRepository, "Recommendation Repository", "JPA Repository", "Stores and processes user preferences and game metadata for recommendations.")
+    ComponentDb(chatRepository, "Chat Repository", "JPA Repository", "Stores chat messages.")
+    ComponentDb(notificationRepository, "Notification Repository", "JPA Repository", "Stores notifications.")
+    ComponentDb(friendshipRepository, "Friendship Repository", "JPA Repository", "Manages friendships between users.")
 
     Rel(categoryController, categoryService, "Uses")
     Rel(genreController, genreService, "Uses")
@@ -48,6 +57,9 @@ Container_Boundary(api, "GameHub Backend Service") {
     Rel(fileStorageController, fileStorageService, "Uses")
     Rel(purchaseController, purchaseService, "Uses")
     Rel(recommendationController, recommendationService, "Uses")
+    Rel(adminController, purchaseService, "Uses")
+    Rel(chatController, chatMessageService, "Uses")
+    Rel(notificationController, notificationService, "Uses")
 
     Rel(categoryService, categoryRepository, "Reads from and writes to")
     Rel(genreService, genreRepository, "Reads from and writes to")
@@ -58,6 +70,8 @@ Container_Boundary(api, "GameHub Backend Service") {
     Rel(eventService, eventRepository, "Reads from and writes to")
     Rel(purchaseService, purchaseRepository, "Reads from and writes to")
     Rel(recommendationService, recommendationRepository, "Reads from and writes to")
+    Rel(chatMessageService, chatRepository, "Reads from and writes to")
+    Rel(notificationService, notificationRepository, "Reads from and writes to")
     }
 
 ContainerDb(database, "Database", "MySQL", "Stores all the platform's data.")
@@ -72,6 +86,9 @@ Rel(webApp, eventController, "Makes API calls to")
 Rel(webApp, fileStorageController, "Makes API calls to")
 Rel(webApp, purchaseController, "Makes API calls to")
 Rel(webApp, recommendationController, "Makes API calls to")
+Rel(webApp, adminController, "Makes API calls to")
+Rel(webApp, chatController, "Makes API calls to")
+Rel(webApp, notificationController, "Makes API calls to")
 
 Rel(categoryRepository, database, "Reads from and writes to")
 Rel(genreRepository, database, "Reads from and writes to")
@@ -82,5 +99,8 @@ Rel(userRepository, database, "Reads from and writes to")
 Rel(eventRepository, database, "Reads from and writes to")
 Rel(purchaseRepository, database, "Reads from and writes to")
 Rel(recommendationRepository, database, "Reads from and writes to")
+Rel(chatRepository, database, "Reads from and writes to")
+Rel(notificationRepository, database, "Reads from and writes to")
+Rel(friendshipRepository, database, "Reads from and writes to")
 
 @enduml
