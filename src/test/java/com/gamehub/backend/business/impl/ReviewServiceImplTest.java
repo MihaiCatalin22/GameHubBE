@@ -76,7 +76,44 @@ class ReviewServiceImplTest {
         verify(reviewRepository).save(any(Review.class));
     }
 
+    @Test
+    void createReviewWithNullRating() {
+        reviewDTO.setRating(null);
+        Long userId = user.getId();
+        Long gameId = game.getId();
 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            reviewService.createReview(reviewDTO, userId, gameId);
+        });
+
+        assertEquals("Rating must be between 1 and 5", exception.getMessage());
+    }
+
+    @Test
+    void createReviewWithLowRating() {
+        reviewDTO.setRating(0);
+        Long userId = user.getId();
+        Long gameId = game.getId();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            reviewService.createReview(reviewDTO, userId, gameId);
+        });
+
+        assertEquals("Rating must be between 1 and 5", exception.getMessage());
+    }
+
+    @Test
+    void createReviewWithHighRating() {
+        reviewDTO.setRating(6);
+        Long userId = user.getId();
+        Long gameId = game.getId();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            reviewService.createReview(reviewDTO, userId, gameId);
+        });
+
+        assertEquals("Rating must be between 1 and 5", exception.getMessage());
+    }
 
     @Test
     void getReviewByIdFound() {
@@ -159,7 +196,6 @@ class ReviewServiceImplTest {
         updatedReviewDTO.setContent("Updated comment");
 
         when(reviewRepository.findById(review.getId())).thenReturn(Optional.of(review));
-
         when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ReviewDTO updatedReview = reviewService.updateReview(review.getId(), updatedReviewDTO);
@@ -199,5 +235,52 @@ class ReviewServiceImplTest {
         assertThrows(RuntimeException.class, () -> reviewService.deleteReview(999L));
         verify(reviewRepository).deleteById(999L);
     }
-}
 
+    @Test
+    void getReviewsByUserIdWithoutGame() {
+        Review reviewWithoutGame = new Review();
+        reviewWithoutGame.setId(2L);
+        reviewWithoutGame.setUser(user);
+        reviewWithoutGame.setRating(4);
+        reviewWithoutGame.setComment("Good game.");
+        reviewWithoutGame.setGame(null);
+        when(reviewRepository.findByUserId(user.getId())).thenReturn(Arrays.asList(review, reviewWithoutGame));
+
+        List<ReviewDTO> reviews = reviewService.getReviewsByUserId(user.getId());
+
+        assertNotNull(reviews);
+        assertFalse(reviews.isEmpty());
+        assertEquals(2, reviews.size());
+        assertEquals("No game associated", reviews.get(1).getGameTitle());
+        assertNull(reviews.get(1).getGameId());
+        verify(reviewRepository).findByUserId(user.getId());
+    }
+
+    @Test
+    void convertToDTO_NullGame() {
+        Review reviewWithoutGame = new Review();
+        reviewWithoutGame.setId(2L);
+        reviewWithoutGame.setUser(user);
+        reviewWithoutGame.setRating(4);
+        reviewWithoutGame.setComment("Good game.");
+        reviewWithoutGame.setGame(null);
+
+        ReviewDTO dto = invokeConvertToDTO(reviewWithoutGame);
+
+        assertNotNull(dto);
+        assertEquals(reviewWithoutGame.getId(), dto.getId());
+        assertEquals(reviewWithoutGame.getRating(), dto.getRating());
+        assertEquals(reviewWithoutGame.getComment(), dto.getComment());
+        assertNull(dto.getGameId());
+    }
+
+    private ReviewDTO invokeConvertToDTO(Review review) {
+        try {
+            java.lang.reflect.Method method = ReviewServiceImpl.class.getDeclaredMethod("convertToDTO", Review.class);
+            method.setAccessible(true);
+            return (ReviewDTO) method.invoke(reviewService, review);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

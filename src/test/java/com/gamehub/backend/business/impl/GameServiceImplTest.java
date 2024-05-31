@@ -10,6 +10,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +34,7 @@ class GameServiceImplTest {
 
     private Game game;
     private User user;
+
     @BeforeEach
     void setUp() {
         game = new Game();
@@ -60,6 +63,7 @@ class GameServiceImplTest {
         assertEquals(game.getId(), createdGame.getId());
         verify(gameRepository).save(any(Game.class));
     }
+
     @Test
     void createGameWithInvalidData() {
         Game nullTitleGame = new Game();
@@ -89,6 +93,63 @@ class GameServiceImplTest {
         verify(gameRepository, never()).save(any(Game.class));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "", "   ", "null" })
+    void createGameWithInvalidDeveloper(String developer) {
+        game.setDeveloper(developer.equals("null") ? null : developer);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(game);
+        });
+        assertEquals("Developer cannot be empty", exception.getMessage());
+    }
+
+    @Test
+    void createGameWithNullReleaseDate() {
+        game.setReleaseDate(null);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(game);
+        });
+        assertEquals("Release date cannot be null", exception.getMessage());
+    }
+
+    @Test
+    void createGameWithNullPrice() {
+        game.setPrice(null);
+        when(gameRepository.save(any(Game.class))).thenReturn(game);
+        Game createdGame = gameService.createGame(game);
+
+        assertNotNull(createdGame);
+        assertEquals(game.getId(), createdGame.getId());
+        verify(gameRepository).save(any(Game.class));
+    }
+
+    @Test
+    void createGameWithNegativePrice() {
+        game.setPrice(-1.0);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(game);
+        });
+        assertEquals("Price must be positive", exception.getMessage());
+    }
+
+    @Test
+    void createGameWithZeroPrice() {
+        game.setPrice(0.0);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(game);
+        });
+        assertEquals("Price must be positive", exception.getMessage());
+    }
+
+    @Test
+    void createGameWithDuplicateTitle() {
+        when(gameRepository.existsByTitleAndIdNot(game.getTitle(), null)).thenReturn(true);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            gameService.createGame(game);
+        });
+        assertEquals("Game title already exists", exception.getMessage());
+    }
+
     @Test
     void getGameById() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -98,6 +159,7 @@ class GameServiceImplTest {
         assertEquals(game.getId(), foundGame.get().getId());
         verify(gameRepository).findById(1L);
     }
+
     @Test
     void getGameByIdWithNonexistentId() {
         Long nonexistentGameId = 999L;
@@ -107,6 +169,7 @@ class GameServiceImplTest {
         assertFalse(result.isPresent());
         verify(gameRepository).findById(nonexistentGameId);
     }
+
     @Test
     void getAllGames() {
         when(gameRepository.findAll()).thenReturn(Arrays.asList(game));
@@ -116,6 +179,7 @@ class GameServiceImplTest {
         assertEquals(1, games.size());
         verify(gameRepository).findAll();
     }
+
     @Test
     void getAllGamesWhenNoneExist() {
         when(gameRepository.findAll()).thenReturn(Arrays.asList());
@@ -123,6 +187,7 @@ class GameServiceImplTest {
         assertTrue(games.isEmpty());
         verify(gameRepository).findAll();
     }
+
     @Test
     void getGamesByUserId() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -148,6 +213,7 @@ class GameServiceImplTest {
         assertEquals("User not found with id 999", exception.getMessage());
         verify(userRepository).findById(nonexistentUserId);
     }
+
     @Test
     void updateGame() {
         Game updatedGameData = new Game();
@@ -167,11 +233,11 @@ class GameServiceImplTest {
         assertEquals(19.99, updatedGame.getPrice());
         verify(gameRepository).save(game);
     }
+
     @Test
     void updateNonexistentGame() {
         Long nonexistentGameId = 999L;
         Game updatedData = new Game();
-
         updatedData.setTitle("Nonexistent Game");
 
         lenient().when(gameRepository.findById(nonexistentGameId)).thenReturn(Optional.empty());
@@ -181,6 +247,7 @@ class GameServiceImplTest {
         });
         verify(gameRepository, never()).save(any(Game.class));
     }
+
     @Test
     void deleteGame() {
         doNothing().when(gameRepository).deleteById(1L);
@@ -189,6 +256,7 @@ class GameServiceImplTest {
 
         verify(gameRepository).deleteById(1L);
     }
+
     @Test
     void deleteNonexistentGame() {
         Long nonexistentGameId = 999L;

@@ -1,6 +1,7 @@
 package com.gamehub.backend.business.impl;
 
 import com.gamehub.backend.domain.ChatMessage;
+import com.gamehub.backend.domain.FriendRelationship;
 import com.gamehub.backend.domain.Role;
 import com.gamehub.backend.domain.User;
 import com.gamehub.backend.persistence.ChatMessageRepository;
@@ -12,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,16 +29,54 @@ class ChatMessageServiceImplTest {
     @InjectMocks
     private ChatMessageServiceImpl chatMessageService;
 
+    private User sender;
+    private User receiver;
     private ChatMessage chatMessage;
+    private ChatMessage receivedMessage;
+    private ChatMessage sentMessageToFriend;
+    private ChatMessage receivedMessageFromFriend;
 
     @BeforeEach
     void setUp() {
+        sender = new User(1L, "sender", "sender@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null);
+        receiver = new User(2L, "receiver", "receiver@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null);
+
+        FriendRelationship friendRelationship = new FriendRelationship();
+        friendRelationship.setId(1L);
+        friendRelationship.setStatus(FriendRelationship.Status.ACCEPTED);
+        friendRelationship.setUser(sender);
+        friendRelationship.setFriend(receiver);
+
+        sender.setFriendRelationships(List.of(friendRelationship));
+        receiver.setFriendRelationships(List.of(friendRelationship));
+
         chatMessage = new ChatMessage();
         chatMessage.setId(1L);
-        chatMessage.setSender(new User(1L, "sender", "sender@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
-        chatMessage.setReceiver(new User(2L, "receiver", "receiver@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
+        chatMessage.setSender(sender);
+        chatMessage.setReceiver(receiver);
         chatMessage.setContent("Hello!");
         chatMessage.setTimestamp(LocalDateTime.now());
+
+        receivedMessage = new ChatMessage();
+        receivedMessage.setId(2L);
+        receivedMessage.setSender(receiver);
+        receivedMessage.setReceiver(sender);
+        receivedMessage.setContent("Hi there!");
+        receivedMessage.setTimestamp(LocalDateTime.now());
+
+        sentMessageToFriend = new ChatMessage();
+        sentMessageToFriend.setId(3L);
+        sentMessageToFriend.setSender(sender);
+        sentMessageToFriend.setReceiver(receiver);
+        sentMessageToFriend.setContent("Message to friend");
+        sentMessageToFriend.setTimestamp(LocalDateTime.now());
+
+        receivedMessageFromFriend = new ChatMessage();
+        receivedMessageFromFriend.setId(4L);
+        receivedMessageFromFriend.setSender(receiver);
+        receivedMessageFromFriend.setReceiver(sender);
+        receivedMessageFromFriend.setContent("Message from friend");
+        receivedMessageFromFriend.setTimestamp(LocalDateTime.now());
     }
 
     @Test
@@ -68,22 +106,48 @@ class ChatMessageServiceImplTest {
 
     @Test
     void getChatMessagesBetweenUsers() {
-        ChatMessage receivedMessage = new ChatMessage();
-        receivedMessage.setId(2L);
-        receivedMessage.setSender(new User(2L, "receiver", "receiver@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
-        receivedMessage.setReceiver(new User(1L, "sender", "sender@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
-        receivedMessage.setContent("Hi there!");
-        receivedMessage.setTimestamp(LocalDateTime.now());
-
-        when(chatMessageRepository.findBySenderId(1L)).thenReturn(List.of(chatMessage));
-        when(chatMessageRepository.findByReceiverId(1L)).thenReturn(List.of(receivedMessage));
+        when(chatMessageRepository.findBySenderId(1L)).thenReturn(List.of(chatMessage, sentMessageToFriend));
+        when(chatMessageRepository.findByReceiverId(1L)).thenReturn(List.of(receivedMessage, receivedMessageFromFriend));
 
         List<ChatMessage> messages = chatMessageService.getChatMessagesBetweenUsers(1L, 2L);
 
         assertNotNull(messages);
-        assertEquals(2, messages.size());
+        assertEquals(4, messages.size());
         assertEquals(chatMessage.getId(), messages.get(0).getId());
-        assertEquals(receivedMessage.getId(), messages.get(1).getId());
+        assertEquals(sentMessageToFriend.getId(), messages.get(1).getId());
+        assertEquals(receivedMessage.getId(), messages.get(2).getId());
+        assertEquals(receivedMessageFromFriend.getId(), messages.get(3).getId());
+        verify(chatMessageRepository).findBySenderId(1L);
+        verify(chatMessageRepository).findByReceiverId(1L);
+    }
+
+    @Test
+    void getChatMessagesBetweenUsers_withMixedConditions() {
+        ChatMessage sentMessageToOtherUser = new ChatMessage();
+        sentMessageToOtherUser.setId(5L);
+        sentMessageToOtherUser.setSender(sender);
+        sentMessageToOtherUser.setReceiver(new User(3L, "otherUser", "otherUser@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
+        sentMessageToOtherUser.setContent("Message to other user");
+        sentMessageToOtherUser.setTimestamp(LocalDateTime.now());
+
+        ChatMessage receivedMessageFromOtherUser = new ChatMessage();
+        receivedMessageFromOtherUser.setId(6L);
+        receivedMessageFromOtherUser.setSender(new User(3L, "otherUser", "otherUser@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
+        receivedMessageFromOtherUser.setReceiver(sender);
+        receivedMessageFromOtherUser.setContent("Message from other user");
+        receivedMessageFromOtherUser.setTimestamp(LocalDateTime.now());
+
+        when(chatMessageRepository.findBySenderId(1L)).thenReturn(List.of(chatMessage, sentMessageToFriend, sentMessageToOtherUser));
+        when(chatMessageRepository.findByReceiverId(1L)).thenReturn(List.of(receivedMessage, receivedMessageFromFriend, receivedMessageFromOtherUser));
+
+        List<ChatMessage> messages = chatMessageService.getChatMessagesBetweenUsers(1L, 2L);
+
+        assertNotNull(messages);
+        assertEquals(4, messages.size());
+        assertEquals(chatMessage.getId(), messages.get(0).getId());
+        assertEquals(sentMessageToFriend.getId(), messages.get(1).getId());
+        assertEquals(receivedMessage.getId(), messages.get(2).getId());
+        assertEquals(receivedMessageFromFriend.getId(), messages.get(3).getId());
         verify(chatMessageRepository).findBySenderId(1L);
         verify(chatMessageRepository).findByReceiverId(1L);
     }

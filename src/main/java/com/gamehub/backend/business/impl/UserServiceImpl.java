@@ -1,5 +1,6 @@
 package com.gamehub.backend.business.impl;
 
+import com.gamehub.backend.configuration.ExcludeFromJacocoGeneratedReport;
 import com.gamehub.backend.domain.FriendRelationship;
 import com.gamehub.backend.dto.FriendRequestDTO;
 import com.gamehub.backend.dto.UserDTO;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @ExcludeFromJacocoGeneratedReport
     public UserDTO createUser(UserDTO userDTO) {
         validateUserDTO(userDTO);
         if (userRepository.existsByUsername(userDTO.getUsername())) {

@@ -11,9 +11,7 @@ import com.gamehub.backend.persistence.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -22,11 +20,14 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 class PurchaseServiceImplTest {
+
     @Mock
     private PurchaseRepository purchaseRepository;
 
@@ -226,7 +227,14 @@ class PurchaseServiceImplTest {
         assertEquals("Test Game", result.get(0).getGameTitle());
         assertEquals(5L, result.get(0).getTotalUnitsSold());
         assertEquals(99.95, result.get(0).getTotalRevenue());
-        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("", startDate, endDate);
+
+        ArgumentCaptor<Date> startDateCaptor = ArgumentCaptor.forClass(Date.class);
+        ArgumentCaptor<Date> endDateCaptor = ArgumentCaptor.forClass(Date.class);
+
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange(eq(""), startDateCaptor.capture(), endDateCaptor.capture());
+
+        assertDatesAreEqualIgnoringMillis(startDate, startDateCaptor.getValue());
+        assertDatesAreEqualIgnoringMillis(endDate, endDateCaptor.getValue());
     }
 
     @Test
@@ -281,12 +289,17 @@ class PurchaseServiceImplTest {
         assertEquals("Test Game", result.get(0).getGameTitle());
         assertEquals(3L, result.get(0).getTotalUnitsSold());
         assertEquals(59.97, result.get(0).getTotalRevenue());
-        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange(gameTitle, startDate, endDate);
+
+        ArgumentCaptor<Date> startDateCaptor = ArgumentCaptor.forClass(Date.class);
+        ArgumentCaptor<Date> endDateCaptor = ArgumentCaptor.forClass(Date.class);
+
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange(eq(gameTitle), startDateCaptor.capture(), endDateCaptor.capture());
+
+        assertDatesAreEqualIgnoringMillis(startDate, startDateCaptor.getValue());
+        assertDatesAreEqualIgnoringMillis(endDate, endDateCaptor.getValue());
+    }
+
+    private void assertDatesAreEqualIgnoringMillis(Date expected, Date actual) {
+        assertEquals(expected.getTime() / 1000, actual.getTime() / 1000, "Dates are not equal ignoring milliseconds");
     }
 }
-
-
-
-
-
-

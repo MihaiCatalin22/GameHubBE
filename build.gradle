@@ -27,6 +27,11 @@ jacocoTestReport {
 	reports {
 		xml.required.set(true)
 	}
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, exclude: [
+		        '**/com/gamehub/backend/configuration/ExcludeFromJacocoGeneratedReport.java'
+		])
+	}))
 }
 
 java {

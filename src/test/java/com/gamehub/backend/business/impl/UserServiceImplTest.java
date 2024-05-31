@@ -12,6 +12,8 @@ import com.gamehub.backend.persistence.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -111,6 +113,26 @@ class UserServiceImplTest {
         when(jwtUtil.generateToken(anyString())).thenReturn("dummyToken");
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "username, Username already exists",
+            "email, Email already exists"
+    })
+    void createUser_existingUsernameOrEmail_throwsException(String field, String expectedMessage) {
+        if (field.equals("username")) {
+            when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(true);
+        } else if (field.equals("email")) {
+            when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(true);
+        }
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals(expectedMessage, exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
     @Test
     void createUser_validData_success() {
         when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(false);
@@ -124,31 +146,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUser_existingUsername_throwsException() {
-        when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(true);
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.createUser(userDTO);
-        });
-
-        assertEquals("Username already exists", exception.getMessage());
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-    @Test
-    void createUser_existingEmail_throwsException() {
-        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(true);
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.createUser(userDTO);
-        });
-
-        assertEquals("Email already exists", exception.getMessage());
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-
-    @Test
     void createUser_weakPassword_throwsException() {
         userDTO.setPassword("weakpass");
         userDTO.setConfirmPassword("weakpass");
@@ -158,6 +155,55 @@ class UserServiceImplTest {
         });
 
         assertEquals("Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createUser_missingFields_throwsException() {
+        userDTO.setUsername("");
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("Password@123");
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Username, email, and password must not be empty", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+
+        userDTO.setUsername("testUser");
+        userDTO.setEmail("");
+        userDTO.setPassword("Password@123");
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Username, email, and password must not be empty", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+
+        userDTO.setUsername("testUser");
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("");
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Username, email, and password must not be empty", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createUser_shortPassword_throwsException() {
+        userDTO.setPassword("short");
+        userDTO.setConfirmPassword("short");
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Password must be at least 8 characters long", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -227,6 +273,7 @@ class UserServiceImplTest {
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository).save(user);
     }
+
     @Test
     void updateUser_roleChange() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -319,10 +366,11 @@ class UserServiceImplTest {
     }
 
     @Test
-    void sendRequest_alreadyFriendsOrPending() {
+    void sendRequest_friendRequestExists_throwsException() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
         when(friendRelationshipRepository.existsByUserAndFriend(any(User.class), any(User.class))).thenReturn(true);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(any(User.class), any(User.class), eq(FriendRelationship.Status.PENDING))).thenReturn(true);
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             userService.sendRequest(1L, 2L);
@@ -369,6 +417,18 @@ class UserServiceImplTest {
     }
 
     @Test
+    void respondToRequest_decline() {
+        when(friendRelationshipRepository.findById(1L)).thenReturn(Optional.of(friendRelationship));
+        friendRelationship.setStatus(FriendRelationship.Status.REJECTED);
+
+        FriendRelationship result = userService.respondToRequest(1L, FriendRelationship.Status.REJECTED);
+
+        assertNotNull(result);
+        assertEquals(FriendRelationship.Status.REJECTED, result.getStatus());
+        verify(friendRelationshipRepository, never()).save(any(FriendRelationship.class));
+    }
+
+    @Test
     void getFriends() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(friendRelationshipRepository.findByUserAndStatusOrFriendAndStatus(user, FriendRelationship.Status.ACCEPTED, user, FriendRelationship.Status.ACCEPTED))
@@ -393,6 +453,282 @@ class UserServiceImplTest {
 
         verify(friendRelationshipRepository).delete(friendRelationship);
     }
+
+    @Test
+    void updateUserProfilePicture_userNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            userService.updateUserProfilePicture(1L, "newPicture.jpg");
+        });
+
+        assertEquals("User not found with id: 1", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void prepareUserEntity_setsRolesAndPassword() {
+        userDTO.setId(null);
+        userDTO.setPassword("Password@123");
+        userDTO.setRole(Collections.singletonList("USER"));
+
+        User preparedUser = invokePrepareUserEntity(userDTO);
+
+        assertNotNull(preparedUser, "The prepared user should not be null");
+        assertFalse(preparedUser.getRoles().isEmpty(), "Roles list should not be empty");
+        assertEquals(Role.USER, preparedUser.getRoles().get(0), "Role should be USER");
+        assertEquals("hashedPassword", preparedUser.getPasswordHash(), "Password hash should match the expected hash");
+    }
+
+    @Test
+    void prepareUserEntity_noPassword_doesNotSetPasswordHash() {
+        userDTO.setPassword(null);
+        userDTO.setConfirmPassword(null);
+
+        User preparedUser = invokePrepareUserEntity(userDTO);
+
+        assertNotNull(preparedUser);
+        assertNull(preparedUser.getPasswordHash());
+    }
+
+    @Test
+    void prepareUserEntity_emptyPassword_doesNotSetPasswordHash() {
+        userDTO.setPassword("");
+        userDTO.setConfirmPassword("");
+        when(passwordEncoder.encode(anyString())).thenReturn(null);
+
+        User preparedUser = invokePrepareUserEntity(userDTO);
+
+        assertNotNull(preparedUser);
+        assertNull(preparedUser.getPasswordHash());
+    }
+
+    private User invokePrepareUserEntity(UserDTO userDTO) {
+        try {
+            java.lang.reflect.Method method = UserServiceImpl.class.getDeclaredMethod("prepareUserEntity", UserDTO.class);
+            method.setAccessible(true);
+            return (User) method.invoke(userService, userDTO);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void updateUser_passwordAndRoleChange() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userDTO.setPassword("NewPassword@123");
+        userDTO.setConfirmPassword("NewPassword@123");
+        userDTO.setRole(Arrays.asList("ADMINISTRATOR", "USER"));
+
+        when(passwordEncoder.matches("NewPassword@123", "hashedPassword")).thenReturn(false);
+
+        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
+
+        assertNotNull(updatedUserDTO);
+        assertEquals(user.getId(), updatedUserDTO.getId());
+        assertEquals(Arrays.asList("ADMINISTRATOR", "USER"), updatedUserDTO.getRole());
+        verify(passwordEncoder).encode("NewPassword@123");
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateUser_noPasswordChange() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userDTO.setPassword("Password@123");
+        userDTO.setConfirmPassword("Password@123");
+        userDTO.setRole(Collections.emptyList());
+
+        when(passwordEncoder.matches("Password@123", "hashedPassword")).thenReturn(true);
+
+        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
+
+        assertNotNull(updatedUserDTO);
+        assertEquals(user.getId(), updatedUserDTO.getId());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void createUser_existingUsernameOrEmail_throwsException() {
+        when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Username already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+
+        reset(userRepository);
+        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(true);
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Email already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void updateUser_passwordCheck() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        userDTO.setPassword("NewPassword@123");
+        userDTO.setConfirmPassword("NewPassword@123");
+
+        when(passwordEncoder.matches("NewPassword@123", "hashedPassword")).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        verify(passwordEncoder).encode("NewPassword@123");
+        verify(userRepository).save(user);
+
+        reset(passwordEncoder, userRepository);
+        userDTO.setPassword("");
+        userDTO.setConfirmPassword("");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void sendRequest_existingRequests() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
+        when(friendRelationshipRepository.existsByUserAndFriend(user, friend)).thenReturn(true);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(user, friend, FriendRelationship.Status.PENDING)).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+
+        reset(friendRelationshipRepository);
+        when(friendRelationshipRepository.existsByUserAndFriend(user, friend)).thenReturn(false);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(user, friend, FriendRelationship.Status.PENDING)).thenReturn(true);
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+    }
+
+    @Test
+    void updateUser_passwordCheck_allConditions() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        userDTO.setPassword("NewPassword@123");
+        userDTO.setConfirmPassword("NewPassword@123");
+        when(passwordEncoder.matches("NewPassword@123", "hashedPassword")).thenReturn(false);
+
+        UserDTO updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        verify(passwordEncoder).encode("NewPassword@123");
+        verify(userRepository).save(user);
+
+        userDTO.setPassword(null);
+        userDTO.setConfirmPassword(null);
+
+        reset(passwordEncoder, userRepository);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(user);
+
+        userDTO.setPassword("");
+        userDTO.setConfirmPassword("");
+
+        reset(passwordEncoder, userRepository);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        updatedUserDTO = userService.updateUser(1L, userDTO);
+        assertNotNull(updatedUserDTO);
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(user);
+    }
+    @Test
+    void sendRequest_friendRequestExists_allConditions() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
+
+        when(friendRelationshipRepository.existsByUserAndFriend(user, friend)).thenReturn(true);
+        when(friendRelationshipRepository.existsByUserAndFriend(friend, user)).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+        verify(friendRelationshipRepository, never()).save(any(FriendRelationship.class));
+
+        reset(friendRelationshipRepository);
+        when(friendRelationshipRepository.existsByUserAndFriend(user, friend)).thenReturn(false);
+        when(friendRelationshipRepository.existsByUserAndFriend(friend, user)).thenReturn(true);
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+
+        reset(friendRelationshipRepository);
+        when(friendRelationshipRepository.existsByUserAndFriend(user, friend)).thenReturn(false);
+        when(friendRelationshipRepository.existsByUserAndFriend(friend, user)).thenReturn(false);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(user, friend, FriendRelationship.Status.PENDING)).thenReturn(true);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(friend, user, FriendRelationship.Status.PENDING)).thenReturn(true);
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+        verify(friendRelationshipRepository, never()).save(any(FriendRelationship.class));
+
+        reset(friendRelationshipRepository);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(user, friend, FriendRelationship.Status.PENDING)).thenReturn(false);
+        when(friendRelationshipRepository.existsByUserAndFriendAndStatus(friend, user, FriendRelationship.Status.PENDING)).thenReturn(true);
+
+        exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sendRequest(1L, 2L);
+        });
+
+        assertEquals("Friend request already sent or user is already your friend", exception.getMessage());
+    }
+    @Test
+    void createUser_existingUsername_throwsException() {
+        when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Username already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createUser_existingEmail_throwsException() {
+        when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(false);
+        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(true);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Email already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
 }
-
-

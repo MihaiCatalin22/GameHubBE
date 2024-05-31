@@ -44,7 +44,6 @@ class EventServiceImplTest {
         event.setParticipants(new HashSet<>(Collections.singletonList(user)));
     }
 
-
     @Test
     void createEvent() {
         when(eventRepository.save(any(Event.class))).thenReturn(event);
@@ -227,7 +226,7 @@ class EventServiceImplTest {
         assertTrue(fetchedParticipants.contains(participant));
         verify(eventRepository).findById(1L);
     }
-    
+
     @Test
     void getParticipantsForNonexistentEvent() {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
@@ -238,5 +237,41 @@ class EventServiceImplTest {
 
         assertTrue(exception.getMessage().contains("Event not found"));
         verify(eventRepository).findById(999L);
+    }
+
+    @Test
+    void createEventWithNullStartDate() {
+        event.setStartDate(null);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            eventService.createEvent(event);
+        });
+
+        assertEquals("Event dates cannot be null", exception.getMessage());
+    }
+
+    @Test
+    void createEventWithNullEndDate() {
+        event.setEndDate(null);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            eventService.createEvent(event);
+        });
+
+        assertEquals("Event dates cannot be null", exception.getMessage());
+    }
+
+    @Test
+    void createEventWithStartDateAfterEndDate() {
+        Date now = new Date();
+        Date later = new Date(now.getTime() + 10000);
+        event.setStartDate(later);
+        event.setEndDate(now);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            eventService.createEvent(event);
+        });
+
+        assertEquals("Start date cannot be after end date", exception.getMessage());
     }
 }

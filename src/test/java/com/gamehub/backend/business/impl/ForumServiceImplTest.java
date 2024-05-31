@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+
 @ExtendWith(MockitoExtension.class)
 class ForumServiceImplTest {
     @Mock
@@ -151,7 +152,6 @@ class ForumServiceImplTest {
         verify(forumPostRepository).save(forumPost);
     }
 
-
     @Test
     void deletePost() {
         doNothing().when(forumPostRepository).deleteById(1L);
@@ -223,6 +223,7 @@ class ForumServiceImplTest {
         assertEquals(1, comments.size());
         assertEquals(comment.getContent(), comments.get(0).getContent());
     }
+
     @Test
     void deleteComment_Success() {
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
@@ -261,6 +262,7 @@ class ForumServiceImplTest {
         verify(commentRepository).findById(1L);
         verify(commentRepository, never()).delete(comment);
     }
+
     @Test
     void getPostsByUserId() {
         Long userId = 1L;
@@ -273,5 +275,74 @@ class ForumServiceImplTest {
         assertEquals(1, posts.size());
         assertEquals(forumPost.getId(), posts.get(0).getId());
         verify(forumPostRepository).findByAuthorId(userId);
+    }
+
+    @Test
+    void validateForumPost_EmptyTitle() {
+        ForumPost invalidPost = new ForumPost();
+        invalidPost.setTitle("");
+        invalidPost.setContent("Some content");
+        invalidPost.setCategory(Category.GENERAL);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            forumService.createPost(invalidPost, 1L);
+        });
+        assertEquals("Title cannot be empty", exception.getMessage());
+    }
+
+    @Test
+    void validateForumPost_EmptyContent() {
+        ForumPost invalidPost = new ForumPost();
+        invalidPost.setTitle("Some title");
+        invalidPost.setContent("");
+        invalidPost.setCategory(Category.GENERAL);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            forumService.createPost(invalidPost, 1L);
+        });
+        assertEquals("Content cannot be empty", exception.getMessage());
+    }
+
+    @Test
+    void validateForumPost_NullCategory() {
+        ForumPost invalidPost = new ForumPost();
+        invalidPost.setTitle("Some title");
+        invalidPost.setContent("Some content");
+        invalidPost.setCategory(null);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            forumService.createPost(invalidPost, 1L);
+        });
+        assertEquals("Category cannot be null", exception.getMessage());
+    }
+
+    @Test
+    void validateComment_EmptyContent() {
+        Comment invalidComment = new Comment();
+        invalidComment.setContent("");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            forumService.commentOnPost(1L, invalidComment, 1L);
+        });
+        assertEquals("Content cannot be empty", exception.getMessage());
+    }
+
+    @Test
+    void toForumPostResponse_NullCategory() {
+        forumPost.setCategory(null);
+        ForumPostResponse response = invokeToForumPostResponse(forumPost);
+
+        assertNotNull(response);
+        assertNull(response.getCategory());
+    }
+
+    private ForumPostResponse invokeToForumPostResponse(ForumPost post) {
+        try {
+            java.lang.reflect.Method method = ForumServiceImpl.class.getDeclaredMethod("toForumPostResponse", ForumPost.class);
+            method.setAccessible(true);
+            return (ForumPostResponse) method.invoke(forumService, post);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
