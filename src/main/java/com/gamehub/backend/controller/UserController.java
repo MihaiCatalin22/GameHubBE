@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:5173", exposedHeaders = "Authorization")
 @RestController
@@ -108,5 +109,20 @@ public class UserController {
     public ResponseEntity<Void> removeFriend(@PathVariable Long relationshipId) {
         userService.removeFriend(relationshipId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/verify-username")
+    public ResponseEntity<Boolean> verifyUsername(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        boolean exists = userService.verifyUsername(username);
+        return ResponseEntity.ok(exists);
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String newPassword = request.get("newPassword");
+        boolean success = userService.resetPassword(username, newPassword);
+        return success ? ResponseEntity.ok("Password has been reset successfully.")
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password reset failed.");
     }
 }

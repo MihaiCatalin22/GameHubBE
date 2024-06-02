@@ -9,6 +9,7 @@ import com.gamehub.backend.domain.User;
 import com.gamehub.backend.persistence.FriendRelationshipRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import com.gamehub.backend.persistence.mapper.UserMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -729,6 +730,46 @@ class UserServiceImplTest {
         });
 
         assertEquals("Email already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+    @Test
+    void verifyUsername_exists() {
+        when(userRepository.existsByUsername(user.getUsername())).thenReturn(true);
+
+        boolean result = userService.verifyUsername(user.getUsername());
+
+        assertTrue(result);
+    }
+
+    @Test
+    void verifyUsername_notExists() {
+        when(userRepository.existsByUsername(user.getUsername())).thenReturn(false);
+
+        boolean result = userService.verifyUsername(user.getUsername());
+
+        assertFalse(result);
+    }
+    @Test
+    void resetPassword_success() {
+        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
+
+        boolean result = userService.resetPassword(user.getUsername(), "newPassword");
+
+        assertTrue(result);
+        assertEquals("encodedNewPassword", user.getPasswordHash());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void resetPassword_userNotFound() {
+        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            userService.resetPassword(user.getUsername(), "newPassword");
+        });
+
+        assertEquals("User not found with username: testUser", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 }

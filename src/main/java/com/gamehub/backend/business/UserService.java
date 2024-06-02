@@ -19,4 +19,7 @@ public interface UserService {
     FriendRelationship respondToRequest(Long relationshipId, FriendRelationship.Status status);
     List<FriendRequestDTO> getFriends(Long userId);
     void removeFriend(Long relationshipId);
+
+    boolean verifyUsername(String username);
+    boolean resetPassword(String username, String newPassword);
 }
