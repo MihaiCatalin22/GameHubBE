@@ -14,17 +14,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -752,9 +757,9 @@ class UserServiceImplTest {
     @Test
     void resetPassword_success() {
         when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
+        when(passwordEncoder.encode("NewPassword1!")).thenReturn("encodedNewPassword");
 
-        boolean result = userService.resetPassword(user.getUsername(), "newPassword");
+        boolean result = userService.resetPassword(user.getUsername(), "NewPassword1!");
 
         assertTrue(result);
         assertEquals("encodedNewPassword", user.getPasswordHash());
@@ -766,10 +771,51 @@ class UserServiceImplTest {
         when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(EntityNotFoundException.class, () -> {
-            userService.resetPassword(user.getUsername(), "newPassword");
+            userService.resetPassword(user.getUsername(), "NewPassword1!");
         });
 
         assertEquals("User not found with username: testUser", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidPasswords")
+    void validateNewPassword_invalid(String password, String expectedMessage) throws Exception {
+        Method method = UserServiceImpl.class.getDeclaredMethod("validateNewPassword", String.class);
+        method.setAccessible(true);
+
+        Exception exception = assertThrows(InvocationTargetException.class, () -> {
+            method.invoke(userService, password);
+        });
+
+        Throwable cause = exception.getCause();
+        assertTrue(cause instanceof IllegalArgumentException);
+        assertEquals(expectedMessage, cause.getMessage());
+    }
+
+    static Stream<Arguments> provideInvalidPasswords() {
+        return Stream.of(
+                Arguments.of("Password1", "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character"),
+                Arguments.of("P@ss1", "Password must be at least 8 characters long"),
+                Arguments.of("PASSWORD1!", "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character"),
+                Arguments.of("password1!", "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character"),
+                Arguments.of("Password!", "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character"),
+                Arguments.of("Password1", "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character")
+        );
+    }
+
+    @Test
+    void resetPassword_weakPassword_throwsException() throws Exception {
+        Method method = UserServiceImpl.class.getDeclaredMethod("validateNewPassword", String.class);
+        method.setAccessible(true);
+
+        Exception exception = assertThrows(InvocationTargetException.class, () -> {
+            method.invoke(userService, "Password1");
+        });
+
+        Throwable cause = exception.getCause();
+        assertTrue(cause instanceof IllegalArgumentException);
+        assertEquals("Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character", cause.getMessage());
+    }
 }
+

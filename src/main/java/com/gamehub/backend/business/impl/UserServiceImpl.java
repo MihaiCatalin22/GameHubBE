@@ -1,6 +1,5 @@
 package com.gamehub.backend.business.impl;
 
-import com.gamehub.backend.configuration.ExcludeFromJacocoGeneratedReport;
 import com.gamehub.backend.domain.FriendRelationship;
 import com.gamehub.backend.dto.FriendRequestDTO;
 import com.gamehub.backend.dto.UserDTO;
@@ -39,15 +38,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @ExcludeFromJacocoGeneratedReport
     public UserDTO createUser(UserDTO userDTO) {
         validateUserDTO(userDTO);
-        if (userRepository.existsByUsername(userDTO.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-        if (userRepository.existsByEmail(userDTO.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
-        }
         User user = prepareUserEntity(userDTO);
         user = userRepository.save(user);
         return buildUserDTOwithJwt(user);
@@ -225,11 +217,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean resetPassword(String username, String newPassword) {
+        validateNewPassword(newPassword);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         return true;
+    }
+
+    private void validateNewPassword(String password) {
+        if (password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long");
+        }
+        if (!password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#\\$%\\^&\\*])(?=\\S+$).{8,}$")) {
+            throw new IllegalArgumentException("Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character");
+        }
     }
 }
