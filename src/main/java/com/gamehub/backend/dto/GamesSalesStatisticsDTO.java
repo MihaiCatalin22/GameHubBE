@@ -13,4 +13,5 @@ public class GamesSalesStatisticsDTO {
     private String gameTitle;
     private Long totalUnitsSold;
     private Double totalRevenue;
+    private Double averageRating;
 }

@@ -13,10 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
@@ -102,8 +99,17 @@ public class PurchaseServiceImpl implements PurchaseService {
                 days == 0 ? null : endDate
         );
 
-        return stats.stream()
-                .map(stat -> new GamesSalesStatisticsDTO((String) stat[0], (Long) stat[1], (Double) stat[2]))
-                .toList();
+        List<GamesSalesStatisticsDTO> result = new ArrayList<>();
+        for (Object[] stat : stats) {
+            String title = (String) stat[0];
+            Long totalUnitsSold = ((Number) stat[1]).longValue();
+            Double totalRevenue = stat[2] != null ? (Double) stat[2] : 0.0;
+            Double averageRating = stat[3] != null ? (Double) stat[3] : 0.0;
+
+            result.add(new GamesSalesStatisticsDTO(title, totalUnitsSold, totalRevenue, averageRating));
+        }
+
+        return result;
     }
+
 }

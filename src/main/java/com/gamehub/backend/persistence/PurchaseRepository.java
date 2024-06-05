@@ -28,15 +28,16 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Purchase p WHERE p.user.id = :userId AND p.game.id = :gameId")
     boolean existsByUserIdAndGameId(@Param("userId") Long userId, @Param("gameId") Long gameId);
 
-    @Query("SELECT p.game.title, COUNT(p), SUM(p.amount) " +
-            "FROM Purchase p " +
-            "WHERE (:gameTitle IS NULL OR p.game.title LIKE %:gameTitle%) " +
-            "AND (:startDate IS NULL OR p.purchaseDate >= :startDate) " +
-            "AND (:endDate IS NULL OR p.purchaseDate <= :endDate) " +
-            "GROUP BY p.game.title")
+    @Query("SELECT g.title, " +
+            "(SELECT COUNT(p) FROM Purchase p WHERE p.game.id = g.id AND (:startDate IS NULL OR p.purchaseDate >= :startDate) AND (:endDate IS NULL OR p.purchaseDate <= :endDate)), " +
+            "(SELECT SUM(p.amount) FROM Purchase p WHERE p.game.id = g.id AND (:startDate IS NULL OR p.purchaseDate >= :startDate) AND (:endDate IS NULL OR p.purchaseDate <= :endDate)), " +
+            "(SELECT AVG(r.rating) FROM Review r WHERE r.game.id = g.id) " +
+            "FROM Game g " +
+            "WHERE (:gameTitle IS NULL OR g.title LIKE %:gameTitle%)")
     List<Object[]> findGameSalesStatisticsByTitleAndDateRange(
             @Param("gameTitle") String gameTitle,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate);
+
 }
 
