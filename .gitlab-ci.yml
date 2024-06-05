@@ -46,7 +46,6 @@ deploy:
   before_script:
     - if (Test-Path ../frontend) { Remove-Item -Recurse -Force ../frontend }
     - git clone https://${FRONTEND_REPO_USER}:${FRONTEND_REPO_TOKEN}@${FRONTEND_REPO} ../frontend
-    - Get-ChildItem ../frontend/individual-assignment-semester-3-fe/src/components/user
   script:
     - ./gradlew assemble
 
