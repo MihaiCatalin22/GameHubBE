@@ -14,6 +14,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.naming.AuthenticationException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,9 +27,15 @@ public class RestCustomExceptionHandler extends ResponseEntityExceptionHandler {
     private static final URI VALIDATION_ERROR_TYPE = URI.create("/validation-error");
 
     @ExceptionHandler(value = {AccessDeniedException.class})
-    public ResponseEntity<Object> handleConstraintViolationException(final AccessDeniedException error) {
+    public ResponseEntity<Object> handleAccessDeniedException(final AccessDeniedException error) {
         log.error("Access Denied with status {} occurred.", HttpStatus.FORBIDDEN, error);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+    }
+
+    @ExceptionHandler(value = {AuthenticationException.class})
+    public ResponseEntity<Object> handleAuthenticationException(final AuthenticationException error) {
+        log.error("Authentication failed with status {} occurred.", HttpStatus.UNAUTHORIZED, error);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication Failed");
     }
 
     @Override

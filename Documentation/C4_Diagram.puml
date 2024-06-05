@@ -135,18 +135,17 @@ package "Repositories" {
     }
 }
 
-GameController ..> GameService : uses
-PurchaseController ..> PurchaseService : uses
-RecommendationController ..> RecommendationService : uses
-AdminController ..> PurchaseService : uses
+GameController <.. GameService : "has"
+PurchaseController <.. PurchaseService : "has"
+RecommendationController <.. RecommendationService : "has"
+AdminController <.. PurchaseService : "has"
 
-
-GameServiceImpl ..> GameRepository : uses
-GameServiceImpl ..> UserRepository : uses
-PurchaseServiceImpl ..> PurchaseRepository : uses
-PurchaseServiceImpl ..> GameRepository : uses
-PurchaseServiceImpl ..> UserRepository : uses
-RecommendationServiceImpl ..> GameRepository : uses
-RecommendationServiceImpl ..> PurchaseRepository : uses
+GameServiceImpl ..> GameRepository : "uses"
+GameServiceImpl ..> UserRepository : "uses"
+PurchaseServiceImpl ..> PurchaseRepository : "uses"
+PurchaseServiceImpl ..> GameRepository : "uses"
+PurchaseServiceImpl ..> UserRepository : "uses"
+RecommendationServiceImpl ..> GameRepository : "uses"
+RecommendationServiceImpl ..> PurchaseRepository : "uses"
 
 @enduml
