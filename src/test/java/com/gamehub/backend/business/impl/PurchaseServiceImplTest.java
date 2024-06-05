@@ -193,7 +193,7 @@ class PurchaseServiceImplTest {
 
     @Test
     void getSalesStatisticsAllTime() {
-        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 3L, 59.97});
+        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 3L, 59.97, 4.5});
         when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange("", null, null)).thenReturn(mockStats);
 
         List<GamesSalesStatisticsDTO> stats = purchaseService.getSalesStatistics("", 0);
@@ -204,13 +204,32 @@ class PurchaseServiceImplTest {
         assertEquals("Test Game", stats.get(0).getGameTitle());
         assertEquals(3L, stats.get(0).getTotalUnitsSold());
         assertEquals(59.97, stats.get(0).getTotalRevenue());
+        assertEquals(4.5, stats.get(0).getAverageRating());
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("", null, null);
+    }
+
+    @Test
+    void getSalesStatisticsAllTime_NullRevenueAndRating() {
+        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 3L, null, null});
+        when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange("", null, null)).thenReturn(mockStats);
+
+        List<GamesSalesStatisticsDTO> stats = purchaseService.getSalesStatistics("", 0);
+
+        assertNotNull(stats);
+        assertFalse(stats.isEmpty());
+        assertEquals(1, stats.size());
+        assertEquals("Test Game", stats.get(0).getGameTitle());
+        assertEquals(3L, stats.get(0).getTotalUnitsSold());
+        assertEquals(0.0, stats.get(0).getTotalRevenue());
+        assertEquals(0.0, stats.get(0).getAverageRating());
         verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("", null, null);
     }
 
     @Test
     void getSalesStatisticsNoTitle() {
-        Mockito.lenient().when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange(anyString(), any(Date.class), any(Date.class)))
-                .thenReturn(Collections.singletonList(new Object[]{"Test Game", 5L, 99.95}));
+        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 5L, 99.95, 4.7});
+        when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange(anyString(), any(Date.class), any(Date.class)))
+                .thenReturn(mockStats);
 
         int days = 7;
         Date endDate = new Date();
@@ -227,6 +246,7 @@ class PurchaseServiceImplTest {
         assertEquals("Test Game", result.get(0).getGameTitle());
         assertEquals(5L, result.get(0).getTotalUnitsSold());
         assertEquals(99.95, result.get(0).getTotalRevenue());
+        assertEquals(4.7, result.get(0).getAverageRating());
 
         ArgumentCaptor<Date> startDateCaptor = ArgumentCaptor.forClass(Date.class);
         ArgumentCaptor<Date> endDateCaptor = ArgumentCaptor.forClass(Date.class);
@@ -239,11 +259,9 @@ class PurchaseServiceImplTest {
 
     @Test
     void getSalesStatisticsZeroDays() {
-        Object[] stat = new Object[]{"Test Game", 5L, 99.95};
-        List<Object[]> stats = Collections.singletonList(stat);
-
+        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 5L, 99.95, 4.0});
         when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange("Test Game", null, null))
-                .thenReturn(stats);
+                .thenReturn(mockStats);
 
         List<GamesSalesStatisticsDTO> result = purchaseService.getSalesStatistics("Test Game", 0);
 
@@ -253,6 +271,25 @@ class PurchaseServiceImplTest {
         assertEquals("Test Game", result.get(0).getGameTitle());
         assertEquals(5L, result.get(0).getTotalUnitsSold());
         assertEquals(99.95, result.get(0).getTotalRevenue());
+        assertEquals(4.0, result.get(0).getAverageRating());
+        verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("Test Game", null, null);
+    }
+
+    @Test
+    void getSalesStatisticsZeroDays_NullRevenueAndRating() {
+        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 5L, null, null});
+        when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange("Test Game", null, null))
+                .thenReturn(mockStats);
+
+        List<GamesSalesStatisticsDTO> result = purchaseService.getSalesStatistics("Test Game", 0);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals("Test Game", result.get(0).getGameTitle());
+        assertEquals(5L, result.get(0).getTotalUnitsSold());
+        assertEquals(0.0, result.get(0).getTotalRevenue());
+        assertEquals(0.0, result.get(0).getAverageRating());
         verify(purchaseRepository).findGameSalesStatisticsByTitleAndDateRange("Test Game", null, null);
     }
 
@@ -270,8 +307,9 @@ class PurchaseServiceImplTest {
 
     @Test
     void getSalesStatisticsWithCalendar() {
-        Mockito.lenient().when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange(anyString(), any(Date.class), any(Date.class)))
-                .thenReturn(Collections.singletonList(new Object[]{"Test Game", 3L, 59.97}));
+        List<Object[]> mockStats = Collections.singletonList(new Object[]{"Test Game", 3L, 59.97, 3.8});
+        when(purchaseRepository.findGameSalesStatisticsByTitleAndDateRange(anyString(), any(Date.class), any(Date.class)))
+                .thenReturn(mockStats);
 
         String gameTitle = "Test Game";
         int days = 5;
@@ -289,6 +327,7 @@ class PurchaseServiceImplTest {
         assertEquals("Test Game", result.get(0).getGameTitle());
         assertEquals(3L, result.get(0).getTotalUnitsSold());
         assertEquals(59.97, result.get(0).getTotalRevenue());
+        assertEquals(3.8, result.get(0).getAverageRating());
 
         ArgumentCaptor<Date> startDateCaptor = ArgumentCaptor.forClass(Date.class);
         ArgumentCaptor<Date> endDateCaptor = ArgumentCaptor.forClass(Date.class);
@@ -303,3 +342,4 @@ class PurchaseServiceImplTest {
         assertEquals(expected.getTime() / 1000, actual.getTime() / 1000, "Dates are not equal ignoring milliseconds");
     }
 }
+
