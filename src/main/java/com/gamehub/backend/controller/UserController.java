@@ -117,12 +117,25 @@ public class UserController {
         boolean exists = userService.verifyUsername(username);
         return ResponseEntity.ok(exists);
     }
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
-        String username = request.get("username");
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<String> requestPasswordReset(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        userService.requestPasswordReset(email);
+        return ResponseEntity.ok("Password reset token sent to email.");
+    }
+
+    @PostMapping("/validate-reset-token")
+    public ResponseEntity<Boolean> validateResetToken(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        boolean isValid = userService.validateResetToken(token);
+        return ResponseEntity.ok(isValid);
+    }
+
+    @PostMapping("/reset-password-with-token")
+    public ResponseEntity<String> resetPasswordWithToken(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
         String newPassword = request.get("newPassword");
-        boolean success = userService.resetPassword(username, newPassword);
-        return success ? ResponseEntity.ok("Password has been reset successfully.")
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password reset failed.");
+        userService.resetPasswordWithToken(token, newPassword);
+        return ResponseEntity.ok("Password has been reset successfully.");
     }
 }

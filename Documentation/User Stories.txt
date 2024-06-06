@@ -1,0 +1,21 @@
+User Stories for GameHub Platform Development:
+
+
+As a user, I want to register to the site so I can have access to the community pages.
+As a user, I want to be able to create a forum post where other users can interact with it.
+As a user, I want to see details about a game, and add it to my collection.
+As a user, I want to see my profile page and edit my details.
+As a user, I want to be able to join events and take part in tournaments or other types of events.
+As a user, I want to be able to chat with other users.
+As a user, I want to be able to add another user as a friend.
+As a user, I want to be able to see a list of the games that I own.
+As a user, I want to be able to see a list of all the purchases I have made, with filters.
+
+As an administrator, I want to be able to add new games in the system.
+As an administrator, I want to be able to create a new events that users can partake in.
+As an administrator, I want to be able to delete posts that are not appropriate for the community.
+As an administrator, I want to be able to delete games or eventsthat are not appropriate for the community.
+As an administrator, I want to see statistics about the revenue of games and their average ratings.
+
+As a community manager, I want to be able to create events for the users to partake in.
+As a community manager, I want to be able to interact with the forum posts, to answer the user's questions at the very least.

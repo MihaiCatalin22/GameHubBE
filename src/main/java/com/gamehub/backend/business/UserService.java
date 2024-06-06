@@ -21,5 +21,7 @@ public interface UserService {
     void removeFriend(Long relationshipId);
 
     boolean verifyUsername(String username);
-    boolean resetPassword(String username, String newPassword);
+    void requestPasswordReset(String email);
+    boolean validateResetToken(String token);
+    boolean resetPasswordWithToken(String token, String newPassword);
 }

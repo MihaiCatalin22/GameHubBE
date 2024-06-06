@@ -17,7 +17,7 @@ sonar {
 		property "sonar.organization", "myOrganization"
 		property "sonar.host.url", "http://localhost:9000"
 		property "sonar.token", "sqp_bc2999b32985799b2f675786b7b077a74e6c6677"
-		property "sonar.coverage.exclusions", "**/domain/**, **/configuration/**, **/dto/**, **/controller/**, **/BackendApplication.java, **/business/impl/CustomUserDetailsService.java, **/persistence/mapper/UserMapper.java, **/business/impl/FileStorageService.java"
+		property "sonar.coverage.exclusions", "**/domain/**, **/configuration/**, **/dto/**, **/controller/**, **/BackendApplication.java, **/business/impl/CustomUserDetailsService.java, **/business/impl/MailService.java, **/persistence/mapper/UserMapper.java, **/business/impl/FileStorageService.java"
 		property "sonar.qualitygate.wait", true
 		property "sonar.gradle.skipCompile", "true"
 	}
@@ -54,6 +54,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.1'

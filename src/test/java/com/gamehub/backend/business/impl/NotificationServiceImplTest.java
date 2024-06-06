@@ -35,7 +35,7 @@ class NotificationServiceImplTest {
     void setUp() {
         notification = new Notification();
         notification.setId(1L);
-        notification.setUser(new User(1L, "user", "user@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
+        notification.setUser(new User(1L, "user", "user@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null, null, null));
         notification.setMessage("New friend request");
         notification.setTimestamp(LocalDateTime.now());
         notification.setRead(false);

@@ -65,9 +65,13 @@ public class RestCustomExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = {RuntimeException.class})
-    public ProblemDetail handleUnknownRuntimeError(final RuntimeException error) {
+    public ResponseEntity<Object> handleUnknownRuntimeError(final RuntimeException error) {
+        if (error.getMessage().contains("Failed to send email")) {
+            log.error("Email sending failed with status {} occurred.", HttpStatus.INTERNAL_SERVER_ERROR, error);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send email. Please try again later.");
+        }
         log.error("Internal server error occurred.", error);
-        return ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred. Please try again later.");
     }
 
     private ProblemDetail convertToProblemDetail(final List<ValidationErrorDTO> errors) {

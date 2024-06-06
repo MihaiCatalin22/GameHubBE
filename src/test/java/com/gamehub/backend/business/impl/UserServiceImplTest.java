@@ -9,6 +9,7 @@ import com.gamehub.backend.domain.User;
 import com.gamehub.backend.persistence.FriendRelationshipRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import com.gamehub.backend.persistence.mapper.UserMapper;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,10 +26,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
@@ -43,7 +42,8 @@ class UserServiceImplTest {
     private FriendRelationshipRepository friendRelationshipRepository;
     @Mock
     private JwtUtil jwtUtil;
-
+    @Mock
+    private MailService mailService;
     @Mock
     private PasswordEncoder passwordEncoder;
 
@@ -755,26 +755,123 @@ class UserServiceImplTest {
         assertFalse(result);
     }
     @Test
-    void resetPassword_success() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode("NewPassword1!")).thenReturn("encodedNewPassword");
+    void requestPasswordReset_success() throws MessagingException {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        boolean result = userService.resetPassword(user.getUsername(), "NewPassword1!");
+        userService.requestPasswordReset(user.getEmail());
 
-        assertTrue(result);
-        assertEquals("encodedNewPassword", user.getPasswordHash());
-        verify(userRepository).save(user);
+        verify(userRepository).save(any(User.class));
+        verify(mailService).sendMail(anyString(), anyString(), anyString());
     }
 
     @Test
-    void resetPassword_userNotFound() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.empty());
+    void requestPasswordReset_userNotFound() throws MessagingException {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(EntityNotFoundException.class, () -> {
-            userService.resetPassword(user.getUsername(), "NewPassword1!");
+            userService.requestPasswordReset(user.getEmail());
         });
 
-        assertEquals("User not found with username: testUser", exception.getMessage());
+        assertEquals("User not found with email: " + user.getEmail(), exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+        verify(mailService, never()).sendMail(anyString(), anyString(), anyString());
+    }
+    @Test
+    void requestPasswordReset_emailSendFailure() throws MessagingException {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        doThrow(new MessagingException("Failed to send email")).when(mailService).sendMail(anyString(), anyString(), anyString());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.requestPasswordReset(user.getEmail()));
+
+        assertEquals("Failed to send email", exception.getMessage());
+        verify(userRepository).save(any(User.class));
+        verify(mailService).sendMail(anyString(), anyString(), anyString());
+    }
+    @Test
+    void validateResetToken_valid() {
+        user.setResetToken(UUID.randomUUID().toString());
+        user.setTokenExpiryDate(LocalDateTime.now().plusMinutes(10));
+        when(userRepository.findByResetToken(user.getResetToken())).thenReturn(Optional.of(user));
+
+        boolean result = userService.validateResetToken(user.getResetToken());
+
+        assertTrue(result);
+    }
+
+    @Test
+    void validateResetToken_invalidToken() {
+        when(userRepository.findByResetToken(anyString())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            userService.validateResetToken("invalidToken");
+        });
+
+        assertEquals("Invalid token", exception.getMessage());
+    }
+
+    @Test
+    void validateResetToken_expiredToken() {
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setTokenExpiryDate(LocalDateTime.now().minusMinutes(10));
+        when(userRepository.findByResetToken(token)).thenReturn(Optional.of(user));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.validateResetToken(token);
+        });
+
+        assertEquals("Invalid or expired token", exception.getMessage());
+    }
+
+    @Test
+    void resetPasswordWithToken_success() {
+        user.setResetToken(UUID.randomUUID().toString());
+        user.setTokenExpiryDate(LocalDateTime.now().plusMinutes(10));
+        when(userRepository.findByResetToken(user.getResetToken())).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+
+        boolean result = userService.resetPasswordWithToken(user.getResetToken(), "NewPassword@123");
+
+        assertTrue(result);
+        verify(userRepository).save(user);
+        assertNull(user.getResetToken());
+        assertNull(user.getTokenExpiryDate());
+        assertEquals("encodedPassword", user.getPasswordHash());
+    }
+
+    @Test
+    void resetPasswordWithToken_invalidToken() {
+        when(userRepository.findByResetToken(anyString())).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            userService.resetPasswordWithToken("invalidToken", "NewPassword@123");
+        });
+
+        assertEquals("Invalid token", exception.getMessage());
+    }
+    @Test
+    void resetPasswordWithToken_validateResetTokenFalse() {
+        String token = UUID.randomUUID().toString();
+
+        UserServiceImpl spyUserService = spy(userService);
+        doReturn(false).when(spyUserService).validateResetToken(token);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            spyUserService.resetPasswordWithToken(token, "NewPassword@123");
+        });
+
+        assertEquals("Invalid or expired token", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+    @Test
+    void resetPasswordWithToken_expiredToken() {
+        user.setResetToken(UUID.randomUUID().toString());
+        user.setTokenExpiryDate(LocalDateTime.now().minusMinutes(10));
+        when(userRepository.findByResetToken(user.getResetToken())).thenReturn(Optional.of(user));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.resetPasswordWithToken(user.getResetToken(), "NewPassword@123"));
+
+        assertEquals("Invalid or expired token", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -802,20 +899,6 @@ class UserServiceImplTest {
                 Arguments.of("Password!", "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character"),
                 Arguments.of("Password1", "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character")
         );
-    }
-
-    @Test
-    void resetPassword_weakPassword_throwsException() throws Exception {
-        Method method = UserServiceImpl.class.getDeclaredMethod("validateNewPassword", String.class);
-        method.setAccessible(true);
-
-        Exception exception = assertThrows(InvocationTargetException.class, () -> {
-            method.invoke(userService, "Password1");
-        });
-
-        Throwable cause = exception.getCause();
-        assertTrue(cause instanceof IllegalArgumentException);
-        assertEquals("Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character", cause.getMessage());
     }
 }
 

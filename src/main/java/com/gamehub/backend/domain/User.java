@@ -3,6 +3,8 @@ package com.gamehub.backend.domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,4 +56,7 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<FriendRelationship> friendRelationships = new ArrayList<>();
+    private String resetToken;
+    private LocalDateTime tokenExpiryDate;
+
 }

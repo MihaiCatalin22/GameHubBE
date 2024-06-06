@@ -10,15 +10,18 @@ import com.gamehub.backend.domain.User;
 import com.gamehub.backend.persistence.FriendRelationshipRepository;
 import com.gamehub.backend.persistence.UserRepository;
 import com.gamehub.backend.persistence.mapper.UserMapper;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -27,14 +30,15 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-
+    private final MailService mailService;
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, FriendRelationshipRepository friendRelationshipRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserMapper userMapper, MailService mailService) {
         this.userRepository = userRepository;
         this.friendRelationshipRepository = friendRelationshipRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
+        this.mailService = mailService;
     }
 
     @Override
@@ -216,12 +220,55 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean resetPassword(String username, String newPassword) {
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setTokenExpiryDate(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        String resetUrl = "http://localhost:5173/forgot-password?token=" + token;
+        String subject = "Password Reset Request";
+        String text = "<p>Hello, you received this email because you requested a password change for your account in the GameHub community.</p>"
+                + "<p>To reset your password, click the following link: <a href=\"" + resetUrl + "\">Reset password</a></p>"
+                + "<p>This reset request will expire in 10 minutes. If it expired, you can request a new one.</p>"
+                + "<p>If this wasn't requested by you, you can ignore this email.</p>";
+
+        try {
+            mailService.sendMail(user.getEmail(), subject, text);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
+    @Override
+    public boolean validateResetToken(String token) {
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new EntityNotFoundException("Invalid token"));
+
+        if (user.getTokenExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Invalid or expired token");
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean resetPasswordWithToken(String token, String newPassword) {
+        if (!validateResetToken(token)) {
+            throw new IllegalArgumentException("Invalid or expired token");
+        }
+
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new EntityNotFoundException("Invalid or expired token"));
+
         validateNewPassword(newPassword);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setTokenExpiryDate(null);
         userRepository.save(user);
         return true;
     }
@@ -234,4 +281,5 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character");
         }
     }
+
 }

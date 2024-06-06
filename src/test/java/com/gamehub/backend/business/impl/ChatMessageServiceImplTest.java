@@ -38,8 +38,8 @@ class ChatMessageServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        sender = new User(1L, "sender", "sender@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null);
-        receiver = new User(2L, "receiver", "receiver@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null);
+        sender = new User(1L, "sender", "sender@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null, null, null);
+        receiver = new User(2L, "receiver", "receiver@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null, null, null);
 
         FriendRelationship friendRelationship = new FriendRelationship();
         friendRelationship.setId(1L);
@@ -126,13 +126,13 @@ class ChatMessageServiceImplTest {
         ChatMessage sentMessageToOtherUser = new ChatMessage();
         sentMessageToOtherUser.setId(5L);
         sentMessageToOtherUser.setSender(sender);
-        sentMessageToOtherUser.setReceiver(new User(3L, "otherUser", "otherUser@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
+        sentMessageToOtherUser.setReceiver(new User(3L, "otherUser", "otherUser@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null, null, null));
         sentMessageToOtherUser.setContent("Message to other user");
         sentMessageToOtherUser.setTimestamp(LocalDateTime.now());
 
         ChatMessage receivedMessageFromOtherUser = new ChatMessage();
         receivedMessageFromOtherUser.setId(6L);
-        receivedMessageFromOtherUser.setSender(new User(3L, "otherUser", "otherUser@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null));
+        receivedMessageFromOtherUser.setSender(new User(3L, "otherUser", "otherUser@example.com", "hashedPassword", "profilePic", "description", List.of(Role.USER), null, null, null, null, null));
         receivedMessageFromOtherUser.setReceiver(sender);
         receivedMessageFromOtherUser.setContent("Message from other user");
         receivedMessageFromOtherUser.setTimestamp(LocalDateTime.now());
