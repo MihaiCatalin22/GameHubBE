@@ -61,4 +61,3 @@ deploy:
   only:
     - main
     - develop
-    - /^feature\/.*$/
