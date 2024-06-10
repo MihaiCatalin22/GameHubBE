@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -100,15 +101,18 @@ class UserControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("newUser"))
-                .andExpect(jsonPath("$.email").value("newuser@example.com"));
+                .andExpect(jsonPath("$.email").value("newuser@example.com"))
+                .andExpect(jsonPath("$.jwt").exists());
     }
+
 
     @Test
     void getAllUsersTest() throws Exception {
         mockMvc.perform(get("/users")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
@@ -117,13 +121,18 @@ class UserControllerIntegrationTest {
         newUser.setUsername("testUser");
         newUser.setEmail("test@example.com");
         newUser.setPasswordHash("password");
+        newUser.setDescription("Test description");
         userRepository.save(newUser);
 
         mockMvc.perform(get("/users/" + newUser.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(newUser.getId()));
+                .andExpect(jsonPath("$.id").value(newUser.getId()))
+                .andExpect(jsonPath("$.username").value(newUser.getUsername()))
+                .andExpect(jsonPath("$.email").value(newUser.getEmail()))
+                .andExpect(jsonPath("$.description").value(newUser.getDescription()));
     }
+
 
     @Test
     void updateUserTest() throws Exception {
@@ -157,7 +166,12 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.username").value("updatedUser"))
                 .andExpect(jsonPath("$.email").value("updated@example.com"))
                 .andExpect(jsonPath("$.description").value("Updated description"));
+
+        User updatedUserFromDb = userRepository.findById(existingUser.getId()).orElseThrow();
+        assertTrue(passwordEncoder.matches("newUpdatedPassword#", updatedUserFromDb.getPasswordHash()));
     }
+
+
 
     @Test
     void deleteUserTest() throws Exception {
@@ -196,149 +210,58 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.status").value(FriendRelationship.Status.PENDING.name()));
     }
 
-//    @Test
-//    void getPendingRequestsTest() throws Exception {
-//        // Authenticate as the sender user
-//        User sender = new User();
-//        sender.setId(1L);
-//        sender.setUsername("sender");
-//        sender.setEmail("sender@example.com");
-//        sender.setPasswordHash(passwordEncoder.encode("password"));
-//        sender = userRepository.save(sender);
-//
-//        setupAuthentication(sender, "USER");
-//
-//        // First send a friend request
-//        mockMvc.perform(post("/users/friend-requests/send")
-//                        .param("userId", sender.getId().toString())
-//                        .param("friendId", friend.getId().toString()))
-//                .andExpect(status().isOk());
-//
-//        // Authenticate as the friend user
-//        setupAuthentication(friend, "USER");
-//
-//        // Then check for pending requests
-//        mockMvc.perform(get("/users/friend-requests/pending/" + friend.getId())
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$").isArray())
-//                .andExpect(jsonPath("$[0].user.username").value(sender.getUsername()));
-//    }
-//
-//    @Test
-//    void respondToRequestTest() throws Exception {
-//        // Authenticate as the sender user
-//        User sender = new User();
-//        sender.setUsername("sender");
-//        sender.setEmail("sender@example.com");
-//        sender.setPasswordHash(passwordEncoder.encode("password"));
-//        sender = userRepository.save(sender);
-//
-//        setupAuthentication(sender, "USER");
-//
-//        // First send a friend request
-//        mockMvc.perform(post("/users/friend-requests/send")
-//                        .param("userId", sender.getId().toString())
-//                        .param("friendId", friend.getId().toString()))
-//                .andExpect(status().isOk());
-//
-//        // Find the request ID
-//        Long requestId = friendRelationshipRepository.findByFriendAndStatus(friend, FriendRelationship.Status.PENDING)
-//                .get(0).getId();
-//
-//        // Authenticate as the friend user
-//        setupAuthentication(friend, "USER");
-//
-//        // Respond to the friend request
-//        mockMvc.perform(post("/users/friend-requests/respond")
-//                        .param("relationshipId", requestId.toString())
-//                        .param("userId", friend.getId().toString())
-//                        .param("status", FriendRelationship.Status.ACCEPTED.name()))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.status").value(FriendRelationship.Status.ACCEPTED.name()));
-//    }
-//
-//    @Test
-//    void getFriendsTest() throws Exception {
-//        // Authenticate as the sender user
-//        User sender = new User();
-//        sender.setUsername("sender");
-//        sender.setEmail("sender@example.com");
-//        sender.setPasswordHash(passwordEncoder.encode("password"));
-//        sender = userRepository.save(sender);
-//
-//        setupAuthentication(sender, "USER");
-//
-//        // First send and accept a friend request
-//        mockMvc.perform(post("/users/friend-requests/send")
-//                        .param("userId", sender.getId().toString())
-//                        .param("friendId", friend.getId().toString()))
-//                .andExpect(status().isOk());
-//
-//        Long requestId = friendRelationshipRepository.findByFriendAndStatus(friend, FriendRelationship.Status.PENDING)
-//                .get(0).getId();
-//
-//        setupAuthentication(friend, "USER");
-//
-//        mockMvc.perform(post("/users/friend-requests/respond")
-//                        .param("relationshipId", requestId.toString())
-//                        .param("userId", friend.getId().toString())
-//                        .param("status", FriendRelationship.Status.ACCEPTED.name()))
-//                .andExpect(status().isOk());
-//
-//        setupAuthentication(sender, "USER");
-//
-//        // Then get the friends list
-//        mockMvc.perform(get("/users/friends/" + sender.getId())
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$").isArray())
-//                .andExpect(jsonPath("$[0].friend.username").value(friend.getUsername()));
-//    }
-//
-//    @Test
-//    void removeFriendTest() throws Exception {
-//        // Authenticate as the sender user
-//        User sender = new User();
-//        sender.setUsername("sender");
-//        sender.setEmail("sender@example.com");
-//        sender.setPasswordHash(passwordEncoder.encode("password"));
-//        sender = userRepository.save(sender);
-//
-//        setupAuthentication(sender, "USER");
-//
-//        // First send and accept a friend request
-//        mockMvc.perform(post("/users/friend-requests/send")
-//                        .param("userId", sender.getId().toString())
-//                        .param("friendId", friend.getId().toString()))
-//                .andExpect(status().isOk());
-//
-//        Long requestId = friendRelationshipRepository.findByFriendAndStatus(friend, FriendRelationship.Status.PENDING)
-//                .get(0).getId();
-//
-//        setupAuthentication(friend, "USER");
-//
-//        mockMvc.perform(post("/users/friend-requests/respond")
-//                        .param("relationshipId", requestId.toString())
-//                        .param("userId", friend.getId().toString())
-//                        .param("status", FriendRelationship.Status.ACCEPTED.name()))
-//                .andExpect(status().isOk());
-//
-//        setupAuthentication(sender, "USER");
-//
-//        // Then remove the friend
-//        mockMvc.perform(delete("/users/friends/remove")
-//                        .param("userId", sender.getId().toString())
-//                        .param("friendId", friend.getId().toString()))
-//                .andExpect(status().isOk());
-//
-//        // Check that the friend is removed
-//        mockMvc.perform(get("/users/friends/" + sender.getId())
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$").isArray())
-//                .andExpect(jsonPath("$").isEmpty());
-//    }
+    @Test
+    void createUserWithExistingUsernameTest() throws Exception {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setPassword("securePassword123@");
+        userDTO.setConfirmPassword("securePassword123@");
+        userDTO.setEmail("anotheremail@example.com");
+        userDTO.setUsername("admin");
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDTO)))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    void createUserWithInvalidPasswordFormatTest() throws Exception {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setPassword("password");
+        userDTO.setConfirmPassword("password");
+        userDTO.setEmail("newuser@example.com");
+        userDTO.setUsername("newUser");
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDTO)))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    void loginUserInvalidCredentialsTest() throws Exception {
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("username", "admin");
+        loginRequest.put("password", "wrongPassword");
+
+        mockMvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isUnauthorized());
+    }
+    @Test
+    void sendFriendRequestAlreadyExistsTest() throws Exception {
+        setupAuthentication(user, "USER");
+
+        mockMvc.perform(post("/users/friend-requests/send")
+                        .param("userId", user.getId().toString())
+                        .param("friendId", friend.getId().toString()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/users/friend-requests/send")
+                        .param("userId", user.getId().toString())
+                        .param("friendId", friend.getId().toString()))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Friend request already sent or user is already your friend"));
+    }
 }
 
 

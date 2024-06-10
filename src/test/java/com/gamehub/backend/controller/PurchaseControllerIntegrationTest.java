@@ -58,6 +58,7 @@ class PurchaseControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
     private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     private Game sampleGame;
     private User sampleUser;
@@ -122,7 +123,7 @@ class PurchaseControllerIntegrationTest {
     }
 
     @Test
-    void purchaseGameTest() throws Exception {
+    void purchaseGameSuccessTest() throws Exception {
         setupAuthentication();
 
         mockMvc.perform(post("/purchases/{userId}/game/{gameId}", 1L, 1L)
@@ -133,17 +134,33 @@ class PurchaseControllerIntegrationTest {
     }
 
     @Test
-    void getPurchasesTest() throws Exception {
+    void purchaseGameEntityNotFoundTest() throws Exception {
+        setupAuthentication();
+
+        when(gameRepository.findById(999L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/purchases/{userId}/game/{gameId}", 1L, 999L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void purchaseGameIllegalStateTest() throws Exception {
+        setupAuthentication();
+
+        when(purchaseRepository.save(any(Purchase.class))).thenThrow(new IllegalStateException("Illegal state"));
+
+        mockMvc.perform(post("/purchases/{userId}/game/{gameId}", 1L, 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Illegal state"));
+    }
+
+    @Test
+    void getPurchasesSuccessTest() throws Exception {
         setupAuthentication();
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
-
-        PurchaseDTO purchaseDTO = new PurchaseDTO(
-                1L,
-                "Elden Ring",
-                59.99,
-                fromDate
-        );
 
         when(purchaseRepository.findByUserIdAndPurchaseDateAfter(1L, fromDate)).thenReturn(List.of(samplePurchase));
 
@@ -155,17 +172,19 @@ class PurchaseControllerIntegrationTest {
     }
 
     @Test
-    void getPurchasesWithMinAmountTest() throws Exception {
+    void getPurchasesInvalidDateFormatTest() throws Exception {
+        setupAuthentication();
+
+        mockMvc.perform(get("/purchases/{userId}", 1L)
+                        .param("fromDate", "invalid-date-format"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getPurchasesWithMinAmountSuccessTest() throws Exception {
         setupAuthentication();
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
-
-        PurchaseDTO purchaseDTO = new PurchaseDTO(
-                1L,
-                "Elden Ring",
-                59.99,
-                fromDate
-        );
 
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountGreaterThanEqual(1L, fromDate, 10.0))
                 .thenReturn(List.of(samplePurchase));
@@ -179,17 +198,10 @@ class PurchaseControllerIntegrationTest {
     }
 
     @Test
-    void getPurchasesWithMaxAmountTest() throws Exception {
+    void getPurchasesWithMaxAmountSuccessTest() throws Exception {
         setupAuthentication();
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
-
-        PurchaseDTO purchaseDTO = new PurchaseDTO(
-                1L,
-                "Elden Ring",
-                59.99,
-                fromDate
-        );
 
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountLessThan(1L, fromDate, 100.0))
                 .thenReturn(List.of(samplePurchase));
@@ -203,17 +215,10 @@ class PurchaseControllerIntegrationTest {
     }
 
     @Test
-    void getPurchasesWithinRangeTest() throws Exception {
+    void getPurchasesWithinRangeSuccessTest() throws Exception {
         setupAuthentication();
         Date fromDate = new Date(System.currentTimeMillis() - 86400000L);
         String fromDateFormatted = DATE_FORMATTER.format(fromDate);
-
-        PurchaseDTO purchaseDTO = new PurchaseDTO(
-                1L,
-                "Elden Ring",
-                59.99,
-                fromDate
-        );
 
         when(purchaseRepository.findByUserIdAndPurchaseDateAfterAndAmountBetween(1L, fromDate, 10.0, 100.0))
                 .thenReturn(List.of(samplePurchase));
@@ -226,8 +231,9 @@ class PurchaseControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].gameTitle").value("Elden Ring"))
                 .andExpect(jsonPath("$[0].amount").value(59.99));
     }
+
     @Test
-    void checkOwnershipTest() throws Exception {
+    void checkOwnershipSuccessTest() throws Exception {
         setupAuthentication();
 
         when(purchaseRepository.existsByUserIdAndGameId(1L, 1L)).thenReturn(true);
@@ -237,5 +243,18 @@ class PurchaseControllerIntegrationTest {
                         .param("gameId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(true));
+    }
+
+    @Test
+    void checkOwnershipGameNotOwnedTest() throws Exception {
+        setupAuthentication();
+
+        when(purchaseRepository.existsByUserIdAndGameId(1L, 2L)).thenReturn(false);
+
+        mockMvc.perform(get("/purchases/owns")
+                        .param("userId", "1")
+                        .param("gameId", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(false));
     }
 }

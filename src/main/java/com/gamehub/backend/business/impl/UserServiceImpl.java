@@ -1,5 +1,6 @@
 package com.gamehub.backend.business.impl;
 
+import com.gamehub.backend.configuration.exception.UserNotFoundException;
 import com.gamehub.backend.domain.FriendRelationship;
 import com.gamehub.backend.dto.FriendRequestDTO;
 import com.gamehub.backend.dto.UserDTO;
@@ -79,7 +80,7 @@ public class UserServiceImpl implements UserService {
                     }
                     userRepository.save(existingUser);
                     return mapToDto(existingUser);
-                }).orElseThrow(() -> new RuntimeException("User not found"));
+                }).orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     @Override

@@ -69,7 +69,8 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public void deleteGame(Long id) {
-        gameRepository.deleteById(id);
+        Game game = gameRepository.findById(id).orElseThrow(() -> new RuntimeException("Game not found"));
+        gameRepository.delete(game);
     }
 
     private void validateGame(Game game, Long gameId) {
