@@ -94,7 +94,39 @@ class ReviewControllerIntegrationTest {
 
         SecurityContextHolder.clearContext();
     }
+    @Test
+    @WithMockUser(username="adminUser", roles={"ADMINISTRATOR"})
+    void addReviewToGame_maximumLength() throws Exception {
+        setupSecurityContext("adminUser", "ADMINISTRATOR", 1L);
 
+        String maxContent = "A".repeat(65535);
+        sampleReview.setContent(maxContent);
+
+        mockMvc.perform(post("/reviews/games/{gameId}/review", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleReview))
+                        .param("userId", "1"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.content").value(maxContent));
+
+        SecurityContextHolder.clearContext();
+    }
+    @Test
+    @WithMockUser
+    void addReviewToGame_invalidReview() throws Exception {
+        setupSecurityContext("testUser", "USER", 1L);
+
+        ReviewDTO invalidReview = new ReviewDTO();
+        invalidReview.setGameId(1L);
+
+        mockMvc.perform(post("/reviews/games/{gameId}/review", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidReview))
+                        .param("userId", "1"))
+                .andExpect(status().isBadRequest());
+
+        SecurityContextHolder.clearContext();
+    }
     @Test
     @WithMockUser
     void getAllReviewsTest() throws Exception {
@@ -120,7 +152,32 @@ class ReviewControllerIntegrationTest {
 
         SecurityContextHolder.clearContext();
     }
+    @Test
+    @WithMockUser
+    void getReviewsByGameId_oneReview() throws Exception {
+        setupSecurityContext("testUser", "USER", 1L);
 
+        given(reviewService.getReviewsByGameId(anyLong())).willReturn(Arrays.asList(sampleReview));
+
+        mockMvc.perform(get("/reviews/games/{gameId}", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sampleReview.getId()));
+
+        SecurityContextHolder.clearContext();
+    }
+    @Test
+    @WithMockUser
+    void getReviewById_invalidReview() throws Exception {
+        setupSecurityContext("testUser", "USER", 1L);
+
+        given(reviewService.getReviewsById(anyLong())).willReturn(Optional.empty());
+
+        mockMvc.perform(get("/reviews/{id}", 999L))
+                .andExpect(status().isNotFound());
+
+        SecurityContextHolder.clearContext();
+    }
     @Test
     @WithMockUser(username="adminUser", roles={"ADMINISTRATOR"})
     void updateReviewTest() throws Exception {
@@ -148,7 +205,23 @@ class ReviewControllerIntegrationTest {
 
         SecurityContextHolder.clearContext();
     }
+    @Test
+    @WithMockUser
+    void updateReview_invalidRating() throws Exception {
+        setupSecurityContext("testUser", "USER", 1L);
 
+        ReviewDTO invalidReview = new ReviewDTO();
+        invalidReview.setId(1L);
+        invalidReview.setGameId(1L);
+        invalidReview.setRating(6);
+
+        mockMvc.perform(put("/reviews/{reviewId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidReview)))
+                .andExpect(status().isBadRequest());
+
+        SecurityContextHolder.clearContext();
+    }
     @Test
     @WithMockUser(username="adminUser", roles={"ADMINISTRATOR"})
     void deleteReviewTest() throws Exception {
@@ -158,6 +231,18 @@ class ReviewControllerIntegrationTest {
 
         mockMvc.perform(delete("/reviews/{reviewId}", 1L))
                 .andExpect(status().isOk());
+
+        SecurityContextHolder.clearContext();
+    }
+    @Test
+    @WithMockUser(username="adminUser", roles={"ADMINISTRATOR"})
+    void deleteReview_invalidReview() throws Exception {
+        setupSecurityContext("adminUser", "ADMINISTRATOR", 1L);
+
+        willThrow(new IllegalArgumentException("Invalid review ID")).given(reviewService).deleteReview(-1L);
+
+        mockMvc.perform(delete("/reviews/{reviewId}", -1L))
+                .andExpect(status().isBadRequest());
 
         SecurityContextHolder.clearContext();
     }

@@ -29,10 +29,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.*;
 
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import static org.mockito.BDDMockito.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -48,11 +47,13 @@ class GameControllerIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     private Game sampleGame;
 
     @BeforeEach
@@ -70,78 +71,78 @@ class GameControllerIntegrationTest {
         given(gameRepository.findAll()).willReturn(Arrays.asList(sampleGame));
     }
 
-    @Test
-    @WithMockUser(username="admin", roles={"ADMINISTRATOR"})
-    void createGameTest() throws Exception {
-        User adminUser = new User();
-        adminUser.setUsername("admin");
-        adminUser.setEmail("admin@mail.com");
-        adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
-        userRepository.save(adminUser);
+    private void setupAuthentication(String username, String role) {
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(username + "@mail.com");
+        user.setPasswordHash(passwordEncoder.encode("password123"));
+        userRepository.save(user);
 
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ADMINISTRATOR"));
-        CustomUserDetails userDetails = new CustomUserDetails(adminUser.getId(), adminUser.getUsername(), adminUser.getPasswordHash(), authorities);
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
+        CustomUserDetails userDetails = new CustomUserDetails(user.getId(), user.getUsername(), user.getPasswordHash(), authorities);
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMINISTRATOR"})
+    void createGameSuccessTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
 
         mockMvc.perform(post("/games")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sampleGame)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("Elden Ring"));
-
-        SecurityContextHolder.clearContext();
-    }
-
-    @Test
-    void getGameByIdTest() throws Exception {
-        User adminUser = new User();
-        adminUser.setUsername("admin");
-        adminUser.setEmail("admin@mail.com");
-        adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
-        userRepository.save(adminUser);
-
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ADMINISTRATOR"));
-        CustomUserDetails userDetails = new CustomUserDetails(adminUser.getId(), adminUser.getUsername(), adminUser.getPasswordHash(), authorities);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        mockMvc.perform(get("/games/{id}", 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Elden Ring"));
-    }
-
-    @Test
-    void getAllGamesTest() throws Exception {
-        User adminUser = new User();
-        adminUser.setUsername("admin");
-        adminUser.setEmail("admin@mail.com");
-        adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
-        userRepository.save(adminUser);
-
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ADMINISTRATOR"));
-        CustomUserDetails userDetails = new CustomUserDetails(adminUser.getId(), adminUser.getUsername(), adminUser.getPasswordHash(), authorities);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        mockMvc.perform(get("/games"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Elden Ring"));
+                .andExpect(jsonPath("$.title").value("Elden Ring"))
+                .andExpect(jsonPath("$.price").value(19.99));
     }
 
     @Test
     @WithMockUser(username="admin", roles={"ADMINISTRATOR"})
-    void updateGameTest() throws Exception {
-        User adminUser = new User();
-        adminUser.setUsername("admin");
-        adminUser.setEmail("admin@mail.com");
-        adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
-        userRepository.save(adminUser);
+    void createGameValidationErrorTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
 
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ADMINISTRATOR"));
-        CustomUserDetails userDetails = new CustomUserDetails(adminUser.getId(), adminUser.getUsername(), adminUser.getPasswordHash(), authorities);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
+        Game invalidGame = new Game();
+        invalidGame.setTitle("");
+
+        mockMvc.perform(post("/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidGame)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getGameByIdSuccessTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
+
+        mockMvc.perform(get("/games/{id}", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Elden Ring"))
+                .andExpect(jsonPath("$.developer").value("FromSoftware"));
+    }
+
+    @Test
+    void getGameByIdNotFoundTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
+
+        mockMvc.perform(get("/games/{id}", 999L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAllGamesSuccessTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
+
+        mockMvc.perform(get("/games"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Elden Ring"))
+                .andExpect(jsonPath("$[0].developer").value("FromSoftware"));
+    }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMINISTRATOR"})
+    void updateGameSuccessTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
 
         Game updatedGame = new Game();
         updatedGame.setTitle("Elden Ring Updated");
@@ -159,21 +160,37 @@ class GameControllerIntegrationTest {
 
     @Test
     @WithMockUser(username="admin", roles={"ADMINISTRATOR"})
-    void deleteGameTest() throws Exception {
-        User adminUser = new User();
-        adminUser.setUsername("admin");
-        adminUser.setEmail("admin@mail.com");
-        adminUser.setPasswordHash(passwordEncoder.encode("adminPass123"));
-        userRepository.save(adminUser);
+    void updateGameNotFoundTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
 
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ADMINISTRATOR"));
-        CustomUserDetails userDetails = new CustomUserDetails(adminUser.getId(), adminUser.getUsername(), adminUser.getPasswordHash(), authorities);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
+        Game updatedGame = new Game();
+        updatedGame.setTitle("Elden Ring Updated");
+        updatedGame.setPrice(49.99);
+        updatedGame.setDescription("Updated description");
+        updatedGame.setDeveloper("FromSoftware");
+        updatedGame.setReleaseDate(new Date());
+
+        mockMvc.perform(put("/games/{id}", 999L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedGame)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMINISTRATOR"})
+    void deleteGameSuccessTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
 
         mockMvc.perform(delete("/games/{id}", 1L))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMINISTRATOR"})
+    void deleteGameNotFoundTest() throws Exception {
+        setupAuthentication("admin", "ADMINISTRATOR");
+
+        mockMvc.perform(delete("/games/{id}", 999L))
+                .andExpect(status().isNotFound());
+    }
 }
-
-

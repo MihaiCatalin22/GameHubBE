@@ -1,5 +1,6 @@
-package com.gamehub.backend.configuration.exceptionhandler;
+package com.gamehub.backend.configuration.exception;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -73,7 +74,21 @@ public class RestCustomExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("Internal server error occurred.", error);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred. Please try again later.");
     }
-
+    @ExceptionHandler(value = {IllegalArgumentException.class})
+    public ResponseEntity<Object> handleIllegalArgumentException(final IllegalArgumentException error) {
+        log.error("IllegalArgumentException with status {} occurred.", HttpStatus.BAD_REQUEST, error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error.getMessage());
+    }
+    @ExceptionHandler(value = {EntityNotFoundException.class})
+    public ResponseEntity<Object> handleEntityNotFoundException(final EntityNotFoundException error) {
+        log.error("EntityNotFoundException with status {} occurred.", HttpStatus.NOT_FOUND, error);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Friend relationship not found");
+    }
+    @ExceptionHandler(value = {UserNotFoundException.class})
+    public ResponseEntity<Object> handleUserNotFoundException(final UserNotFoundException error) {
+        log.error("UserNotFoundException with status {} occurred.", HttpStatus.NOT_FOUND, error);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error.getMessage());
+    }
     private ProblemDetail convertToProblemDetail(final List<ValidationErrorDTO> errors) {
         return convertToProblemDetail(HttpStatus.BAD_REQUEST, errors);
     }

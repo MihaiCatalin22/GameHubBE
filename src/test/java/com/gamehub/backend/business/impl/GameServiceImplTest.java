@@ -250,23 +250,26 @@ class GameServiceImplTest {
 
     @Test
     void deleteGame() {
-        doNothing().when(gameRepository).deleteById(1L);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        doNothing().when(gameRepository).delete(game);
 
         gameService.deleteGame(1L);
 
-        verify(gameRepository).deleteById(1L);
+        verify(gameRepository).findById(1L);
+        verify(gameRepository).delete(game);
     }
 
     @Test
     void deleteNonexistentGame() {
         Long nonexistentGameId = 999L;
-        doThrow(new RuntimeException("Game not found.")).when(gameRepository).deleteById(nonexistentGameId);
+        when(gameRepository.findById(nonexistentGameId)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             gameService.deleteGame(nonexistentGameId);
         });
 
-        assertTrue(exception.getMessage().contains("Game not found"));
-        verify(gameRepository).deleteById(nonexistentGameId);
+        assertEquals("Game not found", exception.getMessage());
+        verify(gameRepository).findById(nonexistentGameId);
+        verify(gameRepository, never()).deleteById(nonexistentGameId);
     }
 }
