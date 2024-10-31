@@ -19,4 +19,4 @@ Market Potential:
 	Gaming continues to grow as an industry and culture. This platform addresses the need for a unified space for discussion, discovery, and sharing.
 
 Expandability: 
-	The platform can evolve to include more features like live streaming integrations, marketplace for in-game items, or a mobile app for on-the-go access.
+	The platform can evolve to include more features like live streaming integrations, marketplace for in-game items, or a mobile app for on-the-go access. 
